@@ -10,6 +10,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   LayoutDashboard,
   Car,
@@ -22,21 +23,24 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { can, type Action } from "@/domain/rbac";
+import type { Role } from "@/domain/types";
 
 interface NavItem {
   href: string;
   label: string;
   icon: LucideIcon;
+  action: Action;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/vehicles", label: "Vehicles", icon: Car },
-  { href: "/drivers", label: "Drivers", icon: Users },
-  { href: "/trips", label: "Trips", icon: Route },
-  { href: "/maintenance", label: "Maintenance", icon: Wrench },
-  { href: "/expenses", label: "Fuel & Expenses", icon: DollarSign },
-  { href: "/reports", label: "Reports", icon: FileText },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, action: "dashboard:view" },
+  { href: "/vehicles", label: "Vehicles", icon: Car, action: "vehicle:read" },
+  { href: "/drivers", label: "Drivers", icon: Users, action: "driver:read" },
+  { href: "/trips", label: "Trips", icon: Route, action: "trip:read" },
+  { href: "/maintenance", label: "Maintenance", icon: Wrench, action: "maintenance:open" },
+  { href: "/expenses", label: "Fuel & Expenses", icon: DollarSign, action: "expense:read" },
+  { href: "/reports", label: "Reports", icon: FileText, action: "analytics:read" },
 ];
 
 interface SidebarProps {
@@ -45,6 +49,15 @@ interface SidebarProps {
 
 export function Sidebar({ onNavigate }: SidebarProps) {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const role = session?.user?.role as Role | undefined;
+
+  // Only show destinations this role is authorized to open (fail-closed).
+  // Until the session resolves, show just the Dashboard to avoid flashing
+  // links the user can't access.
+  const items = NAV_ITEMS.filter((item) =>
+    role ? can(role, item.action) : item.href === "/dashboard"
+  );
 
   return (
     <nav className="flex h-full w-64 flex-col bg-surface-dark text-white">
@@ -58,7 +71,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-        {NAV_ITEMS.map((item) => {
+        {items.map((item) => {
           const Icon = item.icon;
           const isActive =
             pathname === item.href || pathname.startsWith(`${item.href}/`);

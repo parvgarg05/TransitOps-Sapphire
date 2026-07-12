@@ -34,6 +34,10 @@ export default function DriversPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingDriver, setEditingDriver] = useState<DriverWithValidity | null>(null);
 
+  // License reminder state (Requirement 13 - bonus)
+  const [sendingReminders, setSendingReminders] = useState(false);
+  const [reminderResult, setReminderResult] = useState<string | null>(null);
+
   // Fetch drivers from API
   const fetchDrivers = async () => {
     try {
@@ -77,6 +81,30 @@ export default function DriversPage() {
     fetchDrivers(); // Refresh the list
   };
 
+  // Trigger mock license-expiry reminder emails (Requirement 13 - bonus)
+  const handleSendReminders = async () => {
+    try {
+      setSendingReminders(true);
+      setReminderResult(null);
+      const response = await fetch("/api/reminders/license-expiry", {
+        method: "POST",
+      });
+      if (!response.ok) {
+        throw new Error("Failed to send license reminders");
+      }
+      const data: { sent: number } = await response.json();
+      setReminderResult(
+        data.sent > 0
+          ? `Sent ${data.sent} reminder${data.sent === 1 ? "" : "s"} for expiring licenses`
+          : "No licenses expiring soon"
+      );
+    } catch (err: any) {
+      setReminderResult(err.message || "Failed to send license reminders");
+    } finally {
+      setSendingReminders(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-content px-4 sm:px-6 py-8">
       <PageHeader
@@ -84,10 +112,40 @@ export default function DriversPage() {
         description="Manage driver profiles, licenses, and compliance information."
         actions={
           !showForm ? (
-            <Button onClick={handleCreateDriver}>Create New Driver</Button>
+            <div className="flex items-center gap-2">
+              <Button onClick={handleCreateDriver}>Create New Driver</Button>
+              <Button
+                variant="outline"
+                onClick={handleSendReminders}
+                disabled={sendingReminders}
+              >
+                {sendingReminders ? "Sending..." : "Send License Reminders"}
+              </Button>
+            </div>
           ) : undefined
         }
       />
+
+      {/* License Reminder Result Banner (Requirement 13 - bonus) */}
+      {reminderResult && !showForm && (
+        <div
+          className={
+            reminderResult.startsWith("Sent")
+              ? "mb-6 rounded-md border border-success/30 bg-success/10 p-4"
+              : "mb-6 rounded-md border border-hairline bg-surface-card p-4"
+          }
+        >
+          <p
+            className={
+              reminderResult.startsWith("Sent")
+                ? "text-sm text-success"
+                : "text-sm text-foreground"
+            }
+          >
+            {reminderResult}
+          </p>
+        </div>
+      )}
 
       {/* Error Display */}
       {error && (

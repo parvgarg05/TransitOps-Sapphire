@@ -16,8 +16,11 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ReportCard } from "@/components/reports/ReportCard";
+import { ReportCharts } from "@/components/reports/ReportCharts";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import {
   Table,
   TableBody,
@@ -26,7 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Download, FileSpreadsheet } from "lucide-react";
+import { Download, FileSpreadsheet, FileText } from "lucide-react";
 
 interface FuelEfficiencyData {
   vehicleId: string;
@@ -55,6 +58,7 @@ export default function ReportsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
 
   useEffect(() => {
     fetchReports();
@@ -118,6 +122,68 @@ export default function ReportsPage() {
     }
   };
 
+  const handleExportPDF = () => {
+    setIsExportingPDF(true);
+    try {
+      // Build the PDF entirely in memory from the already-fetched report data.
+      // Requirement 12.1: produce a PDF containing the report data.
+      const doc = new jsPDF();
+      const generatedAt = new Date().toLocaleString();
+
+      doc.setFontSize(18);
+      doc.text("TransitOps — Analytics Report", 14, 18);
+      doc.setFontSize(10);
+      doc.setTextColor(120);
+      doc.text(`Generated ${generatedAt}`, 14, 25);
+      doc.setTextColor(0);
+
+      // Fleet Utilization summary
+      const util =
+        fleetUtilization?.utilization !== null &&
+        fleetUtilization?.utilization !== undefined
+          ? `${fleetUtilization.utilization}% (${fleetUtilization.onTripCount} of ${fleetUtilization.nonRetiredCount} non-retired on trip)`
+          : "N/A";
+      doc.setFontSize(12);
+      doc.text(`Fleet Utilization: ${util}`, 14, 35);
+
+      // Fuel Efficiency table
+      autoTable(doc, {
+        startY: 42,
+        head: [["Vehicle", "Reg. No.", "Fuel Efficiency (km/L)"]],
+        body: fuelEfficiency.map((v) => [
+          v.name,
+          v.registrationNumber,
+          v.fuelEfficiency !== null ? v.fuelEfficiency.toFixed(2) : "N/A",
+        ]),
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [17, 17, 17] },
+      });
+
+      // Vehicle ROI table (continues after the previous table)
+      const afterFuelY =
+        (doc as unknown as { lastAutoTable?: { finalY: number } })
+          .lastAutoTable?.finalY ?? 42;
+      autoTable(doc, {
+        startY: afterFuelY + 8,
+        head: [["Vehicle", "Reg. No.", "ROI"]],
+        body: vehicleROI.map((v) => [
+          v.name,
+          v.registrationNumber,
+          v.roi !== null ? v.roi.toFixed(2) : "N/A",
+        ]),
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [17, 17, 17] },
+      });
+
+      doc.save(`transitops-report-${new Date().toISOString().split("T")[0]}.pdf`);
+    } catch (err) {
+      // Requirement 12.2: show an export error on failure.
+      alert(err instanceof Error ? err.message : "Failed to export PDF");
+    } finally {
+      setIsExportingPDF(false);
+    }
+  };
+
   if (error) {
     return (
       <div className="container mx-auto py-8 px-4">
@@ -144,14 +210,25 @@ export default function ReportsPage() {
         title="Analytics Reports"
         description="View comprehensive fleet analytics and performance metrics."
         actions={
-          <Button
-            onClick={handleExportCSV}
-            disabled={isExporting}
-            className="flex items-center gap-2"
-          >
-            <Download className="h-4 w-4" />
-            {isExporting ? "Exporting..." : "Export CSV"}
-          </Button>
+          <>
+            <Button
+              variant="outline"
+              onClick={handleExportPDF}
+              disabled={isExportingPDF || isLoading}
+              className="flex items-center gap-2"
+            >
+              <FileText className="h-4 w-4" />
+              {isExportingPDF ? "Exporting..." : "Export PDF"}
+            </Button>
+            <Button
+              onClick={handleExportCSV}
+              disabled={isExporting}
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              {isExporting ? "Exporting..." : "Export CSV"}
+            </Button>
+          </>
         }
       />
 
@@ -197,6 +274,14 @@ export default function ReportsPage() {
           isLoading={isLoading}
         />
       </div>
+
+      {/* Visual Analytics (bonus Req 11) */}
+      {!isLoading && (
+        <ReportCharts
+          fuelEfficiency={fuelEfficiency}
+          fleetUtilization={fleetUtilization}
+        />
+      )}
 
       {/* Detailed Tables */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

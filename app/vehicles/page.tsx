@@ -8,6 +8,7 @@
  */
 
 import { VehicleList } from "@/components/vehicles/VehicleList";
+import { VehicleDocumentsSection } from "@/components/vehicles/VehicleDocumentsSection";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function VehiclesPage() {
@@ -18,6 +19,7 @@ export default function VehiclesPage() {
         description="Manage your fleet vehicles, track status, and maintain vehicle records."
       />
       <VehicleList />
+      <VehicleDocumentsSection />
     </div>
   );
 }

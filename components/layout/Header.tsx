@@ -10,6 +10,7 @@
 import { signOut, useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Menu, LogOut } from "lucide-react";
 
 interface HeaderProps {
@@ -33,6 +34,7 @@ export function Header({ onMenuClick }: HeaderProps) {
       <div className="flex-1" />
 
       <div className="flex items-center gap-3">
+        <ThemeToggle />
         {session?.user && (
           <div className="flex items-center gap-2">
             <span className="hidden sm:inline text-sm text-muted-foreground">

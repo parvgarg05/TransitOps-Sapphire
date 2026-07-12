@@ -4,7 +4,10 @@ import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
 
-// Parse connection string manually for Prisma v7 adapter
+// Build the pool from the full connection string so SSL settings such as
+// `sslmode=require` (needed by managed providers like Neon/Supabase) are
+// honored. Decomposing the URL into individual fields drops those params
+// and causes connections to be rejected.
 const connectionString = process.env.DATABASE_URL || '';
 if (!connectionString) {
   throw new Error('DATABASE_URL environment variable is not set');
@@ -126,6 +129,8 @@ async function main() {
   // ========================================
   console.log('\nCreating vehicles...');
   
+  // All monetary values are in Indian Rupees (INR).
+  // Registration numbers follow the Indian format: SS-RR-XX-NNNN.
   const vehicleData = [
     // Trucks
     { reg: 'MH12AB1234', name: 'Tata Prima 5530', type: 'Truck', region: 'West', capacity: 25000, odometer: 186420.40, cost: 4200000, revenue: 6900000, status: 'AVAILABLE' },
@@ -188,6 +193,8 @@ async function main() {
     return d;
   };
 
+  // License categories follow Indian classes: LMV (light), HMV (heavy),
+  // HGMV (heavy goods), HTV (heavy transport). Contacts are +91 mobile numbers.
   const driverData = [
     // Available drivers with valid licenses
     { name: 'Rohit Sharma', license: 'MH-TR-10234', category: 'HMV', expiry: futureDate(365), contact: '+91-9876501011', score: 95.5, status: 'AVAILABLE' },
@@ -234,6 +241,7 @@ async function main() {
   // ========================================
   console.log('Creating trips...');
 
+  // Routes use Indian city pairs; distances are in kilometres.
   const tripData = [
     // Completed trips
     { source: 'Mumbai', dest: 'Pune', vehicleIdx: 0, driverIdx: 0, weight: 8500, distance: 154.0, finalOdo: 186574.40, fuel: 62.5, status: 'COMPLETED' },
@@ -281,6 +289,7 @@ async function main() {
   // ========================================
   console.log('Creating maintenance logs...');
 
+  // Maintenance costs are in INR.
   const maintenanceData = [
     // Closed maintenance records
     { vehicleIdx: 0, desc: 'Engine oil and filter service', cost: 18500.00, closed: true, openedDaysAgo: 30, closedDaysAgo: 28 },
@@ -321,6 +330,7 @@ async function main() {
   // ========================================
   console.log('Creating fuel logs...');
 
+  // Fuel costs are in INR (diesel ~Rs 92/L for trucks & vans, petrol ~Rs 106/L for sedans).
   const fuelData = [
     { vehicleIdx: 0, liters: 125.5, cost: 12425.00, daysAgo: 5 },
     { vehicleIdx: 0, liters: 130.2, cost: 12910.00, daysAgo: 12 },
@@ -359,6 +369,7 @@ async function main() {
   // ========================================
   console.log('Creating expenses...');
 
+  // Expense costs are in INR (tolls reflect FASTag highway charges).
   const expenseData = [
     { vehicleIdx: 0, category: 'toll', cost: 780.00, daysAgo: 5 },
     { vehicleIdx: 1, category: 'toll', cost: 620.00, daysAgo: 3 },

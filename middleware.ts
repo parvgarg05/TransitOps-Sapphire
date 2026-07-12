@@ -28,6 +28,7 @@ import type { Role } from "./domain/types";
  * These routes are accessible without a session.
  */
 const PUBLIC_ROUTES = [
+  "/",
   "/login",
   "/api/auth/login",
   "/api/auth/logout",
@@ -94,7 +95,6 @@ const ROUTE_ACTIONS: Array<{ pattern: RegExp; action: Action }> = [
 
   // Dashboard routes
   { pattern: /^\/dashboard/i, action: "dashboard:view" },
-  { pattern: /^\/$/i, action: "dashboard:view" }, // Root redirects to dashboard
 ];
 
 // ============================================================================
