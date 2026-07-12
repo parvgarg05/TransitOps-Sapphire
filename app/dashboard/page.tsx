@@ -21,6 +21,7 @@ import { KPICard } from "@/components/dashboard/KPICard";
 import { FilterBar, DashboardFilters } from "@/components/dashboard/FilterBar";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { DashboardChatbot } from "@/components/dashboard/DashboardChatbot";
 import {
   Car,
   Users,
@@ -359,6 +360,15 @@ export default function DashboardPage() {
             </div>
           </div>
         )}
+
+      <DashboardChatbot
+        dashboardContext={{
+          role: data?.role,
+          view,
+          filters,
+          kpis: data?.kpis,
+        }}
+      />
 
       {/* Loading State */}
       {isLoading && (
