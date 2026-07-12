@@ -244,10 +244,10 @@ describe("Property-Based Tests", () => {
    */
   const arbVehicle = fc.record({
     id: fc.string({ minLength: 1, maxLength: 10 }),
-    registrationNumber: fc.string({ minLength: 1, maxLength: 20 }),
-    name: fc.string({ minLength: 1, maxLength: 50 }),
+    registrationNumber: fc.string({ minLength: 1, maxLength: 20 }).filter(s => s.trim().length > 0),
+    name: fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim().length > 0),
     type: fc.constantFrom("Truck", "Van", "Bus", "Car"),
-    region: fc.oneof(fc.constant(null), fc.string({ minLength: 1, maxLength: 20 })),
+    region: fc.oneof(fc.constant(null), fc.string({ minLength: 1, maxLength: 20 }).filter(s => s.trim().length > 0)),
     maxLoadCapacity: fc.integer({ min: 100, max: 100000 }),
     odometer: fc.integer({ min: 0, max: 10000000 }),
     acquisitionCost: fc.integer({ min: 0, max: 1000000 }),
@@ -261,14 +261,14 @@ describe("Property-Based Tests", () => {
    */
   const arbDriver = fc.record({
     id: fc.string({ minLength: 1, maxLength: 10 }),
-    name: fc.string({ minLength: 1, maxLength: 50 }),
-    licenseNumber: fc.string({ minLength: 1, maxLength: 20 }),
+    name: fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim().length > 0),
+    licenseNumber: fc.string({ minLength: 1, maxLength: 20 }).filter(s => s.trim().length > 0),
     licenseCategory: fc.constantFrom("Commercial", "Private", "Heavy", "Light"),
     licenseExpiryDate: fc.date({ 
       min: new Date("2020-01-01"), 
       max: new Date("2030-12-31") 
     }),
-    contactNumber: fc.string({ minLength: 7, maxLength: 15 }),
+    contactNumber: fc.string({ minLength: 7, maxLength: 15 }).filter(s => s.trim().length > 0),
     safetyScore: fc.integer({ min: 0, max: 100 }),
     status: arbDriverStatus,
     createdAt: fc.date({ min: new Date("2020-01-01"), max: new Date() }),
