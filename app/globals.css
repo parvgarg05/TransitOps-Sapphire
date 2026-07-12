@@ -1,3 +1,85 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * TransitOps design tokens — Cal.com-inspired monochrome SaaS system.
+ * White canvas, near-black (#111111) primary, light-gray (#f5f5f5) cards,
+ * hairline (#e5e7eb) borders, Inter type. The dark surface (#101010) is
+ * reserved for the sidebar / footer only.
+ */
+@layer base {
+  :root {
+    /* Surfaces */
+    --background: #ffffff;
+    --foreground: #111111;
+    --canvas: #ffffff;
+    --surface-soft: #f8f9fa;
+    --surface-card: #f5f5f5;
+    --surface-strong: #e5e7eb;
+    --surface-dark: #101010;
+    --surface-dark-elevated: #1a1a1a;
+
+    --card: #ffffff;
+    --card-foreground: #111111;
+    --popover: #ffffff;
+    --popover-foreground: #111111;
+
+    /* Action layer (monochrome) */
+    --primary: #111111;
+    --primary-foreground: #ffffff;
+    --primary-active: #242424;
+    --secondary: #f5f5f5;
+    --secondary-foreground: #111111;
+    --muted: #f5f5f5;
+    --muted-foreground: #6b7280;
+    --accent: #f8f9fa;
+    --accent-foreground: #111111;
+
+    /* Lines + focus */
+    --border: #e5e7eb;
+    --hairline: #e5e7eb;
+    --hairline-soft: #f3f4f6;
+    --input: #e5e7eb;
+    --ring: #111111;
+    --radius: 0.5rem;
+
+    /* Semantic */
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+
+    /* Brand accent (used sparingly) + badge pastels */
+    --brand-accent: #3b82f6;
+    --badge-orange: #fb923c;
+    --badge-pink: #ec4899;
+    --badge-violet: #8b5cf6;
+    --badge-emerald: #34d399;
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  html {
+    font-family: var(--font-sans), Inter, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", Roboto, sans-serif;
+  }
+
+  /* Cal.com display voice: Inter 600 with negative tracking on headings. */
+  h1,
+  h2,
+  h3 {
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--foreground);
+  }
+}

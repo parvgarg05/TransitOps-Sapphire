@@ -38,5 +38,7 @@ declare module "next-auth/jwt" {
     id: string;
     email: string;
     role: string;
+    /** Rolling activity timestamp (ms since epoch) for idle-timeout checks. */
+    lastActivity?: number;
   }
 }

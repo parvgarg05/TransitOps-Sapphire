@@ -75,7 +75,6 @@ function mapPrismaVehicleToDomain(vehicle: any): Vehicle {
  */
 export async function listVehicles(): Promise<Result<Vehicle[]>> {
   try {
-    const prisma = prisma;
     const vehicles = await prisma.vehicle.findMany({
       orderBy: { createdAt: "desc" },
     });
@@ -115,7 +114,6 @@ export async function createVehicle(input: CreateVehicleInput): Promise<Result<V
 
   // Step 2: Check registration number uniqueness
   try {
-    const prisma = prisma;
     // Fetch existing registration numbers
     const existingVehicles = await prisma.vehicle.findMany({
       select: { registrationNumber: true },
@@ -181,7 +179,6 @@ export async function updateVehicle(id: string, input: UpdateVehicleInput): Prom
   }
 
   try {
-    const prisma = prisma;
     // Step 2: Check if vehicle exists
     const existingVehicle = await prisma.vehicle.findUnique({
       where: { id },
@@ -234,7 +231,6 @@ export async function updateVehicle(id: string, input: UpdateVehicleInput): Prom
  */
 export async function retireVehicle(id: string): Promise<Result<Vehicle>> {
   try {
-    const prisma = prisma;
     // Check if vehicle exists
     const existingVehicle = await prisma.vehicle.findUnique({
       where: { id },

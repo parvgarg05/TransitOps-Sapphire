@@ -1,7 +1,8 @@
 /**
- * Vehicle API Route: PATCH /api/vehicles/[id]
+ * Vehicle API Routes: GET and PATCH /api/vehicles/[id]
  * 
- * Update an existing vehicle (registration number is immutable)
+ * GET: Retrieve a single vehicle by ID
+ * PATCH: Update an existing vehicle (registration number is immutable)
  * 
  * Requirements: 3.5, 3.6, 3.7, 3.8, 3.9
  */
@@ -9,6 +10,41 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateVehicle } from "../../../../services/vehicleService";
 import { UpdateVehicleInput } from "../../../../domain/validators/vehicle";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+/**
+ * GET /api/vehicles/[id]
+ * Retrieve a single vehicle by ID
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id } = params;
+
+    const vehicle = await prisma.vehicle.findUnique({
+      where: { id },
+    });
+
+    if (!vehicle) {
+      return NextResponse.json(
+        { error: "Vehicle not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ vehicle }, { status: 200 });
+  } catch (error) {
+    console.error("Error fetching vehicle:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch vehicle" },
+      { status: 500 }
+    );
+  }
+}
 
 /**
  * PATCH /api/vehicles/[id]

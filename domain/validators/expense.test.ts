@@ -43,7 +43,7 @@ describe("Expense Validators", () => {
   const futureDateArb = fc.date({ 
     min: new Date(Date.now() + 86400000), // At least 1 day in future
     max: new Date(Date.now() + 365 * 86400000) // Max 1 year in future
-  });
+  }).filter(date => !isNaN(date.getTime())); // Filter out invalid dates
 
   /**
    * Arbitrary for today's date

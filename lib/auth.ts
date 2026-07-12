@@ -15,6 +15,29 @@ import { prisma } from "@/lib/db";
 import { validateCredentials, GENERIC_AUTH_ERROR } from "@/domain/loginPolicy";
 import { verifyPassword } from "@/domain/password";
 import { computeLockoutState, LOCKOUT_CONFIG, LoginAttempt } from "@/domain/lockout";
+import type { Role } from "@/domain/types";
+
+/**
+ * Maps the persisted role identifier (e.g. "FLEET_MANAGER") to the canonical
+ * domain Role string (e.g. "Fleet Manager") used across the RBAC matrix,
+ * dashboard default-view mapping, and the rest of the domain layer.
+ *
+ * Accepts either the enum-style name or the already-canonical name so the app
+ * is resilient to how roles were seeded.
+ */
+export function normalizeRole(name: string): Role | null {
+  const map: Record<string, Role> = {
+    FLEET_MANAGER: "Fleet Manager",
+    DRIVER: "Driver",
+    SAFETY_OFFICER: "Safety Officer",
+    FINANCIAL_ANALYST: "Financial Analyst",
+    "Fleet Manager": "Fleet Manager",
+    Driver: "Driver",
+    "Safety Officer": "Safety Officer",
+    "Financial Analyst": "Financial Analyst",
+  };
+  return map[name] ?? null;
+}
 
 /**
  * Auth.js configuration
@@ -112,11 +135,12 @@ export const authOptions: AuthOptions = {
           },
         });
 
-        // Step 6: Return user with role for session (Req 1.5)
+        // Step 6: Return user with the canonical domain role for the session
+        // (Req 1.5). Normalizing here keeps RBAC + dashboard mapping consistent.
         return {
           id: user.id,
           email: user.email,
-          role: user.role.name,
+          role: normalizeRole(user.role.name) ?? user.role.name,
         };
       },
     }),
@@ -137,6 +161,10 @@ export const authOptions: AuthOptions = {
         token.email = user.email;
         token.role = user.role;
       }
+      // Stamp a rolling activity timestamp so middleware can enforce the
+      // 30-minute idle timeout (Req 1.7). This is refreshed each time the
+      // session is re-issued (client session polling / navigation).
+      token.lastActivity = Date.now();
       return token;
     },
     async session({ session, token }) {
