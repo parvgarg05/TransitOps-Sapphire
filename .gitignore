@@ -41,5 +41,6 @@ prisma/migrations/
 # IDE
 .vscode/
 .idea/
+.kiro/
 
 /app/generated/prisma
