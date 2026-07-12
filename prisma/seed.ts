@@ -18,6 +18,9 @@ const pool = new Pool({
   database: url.pathname.slice(1).split('?')[0],
   user: url.username,
   password: url.password,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 const adapter = new PrismaPg(pool);
