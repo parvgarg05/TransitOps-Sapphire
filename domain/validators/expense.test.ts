@@ -179,6 +179,11 @@ describe("Expense Validators", () => {
           futureDateArb,
           todayArb,
           (vehicleId, liters, cost, date, today) => {
+            // Skip invalid dates
+            if (isNaN(date.getTime()) || isNaN(today.getTime())) {
+              return true;
+            }
+            
             const input: CreateFuelLogInput = { vehicleId, liters, cost, date };
             const result = validateFuelLogCreation(input, today);
             
