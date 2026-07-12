@@ -11,8 +11,9 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { roleHome } from "@/lib/roleAccess";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +22,9 @@ import { Truck, Loader2 } from "lucide-react";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/dashboard";
+  // An explicit ?redirect= (e.g. from a deep link) is honored; otherwise we
+  // send the user to their role's home page.
+  const explicitRedirect = searchParams.get("redirect");
   const expired = searchParams.get("expired") === "true";
 
   const [email, setEmail] = useState("");
@@ -47,7 +50,11 @@ function LoginForm() {
       }
 
       if (result?.ok) {
-        router.push(redirectTo);
+        // Resolve the freshly-issued session to route by role.
+        const session = await getSession();
+        const destination =
+          explicitRedirect || roleHome(session?.user?.role);
+        router.push(destination);
         router.refresh();
       }
     } catch {
