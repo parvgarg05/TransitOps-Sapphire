@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { NativeSelect } from "@/components/ui/native-select";
 import { UpdateCostDialog } from "./UpdateCostDialog";
+import { useToast } from "@/components/ui/toast";
 
 interface Vehicle {
   id: string;
@@ -36,6 +37,7 @@ export function MaintenanceList({ refreshTrigger = 0 }: MaintenanceListProps) {
   const [vehicleFilter, setVehicleFilter] = useState<string>("");
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [closingId, setClosingId] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const fetchVehicles = async () => {
     try {
@@ -100,8 +102,17 @@ export function MaintenanceList({ refreshTrigger = 0 }: MaintenanceListProps) {
 
       // Refresh the list
       fetchLogs();
+      toast({
+        title: "Maintenance closed",
+        description: "The vehicle has been returned to service.",
+        variant: "success",
+      });
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to close maintenance");
+      toast({
+        title: "Couldn't close maintenance",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "error",
+      });
     } finally {
       setClosingId(null);
     }
@@ -175,68 +186,68 @@ export function MaintenanceList({ refreshTrigger = 0 }: MaintenanceListProps) {
             ))}
           </NativeSelect>
         </div>
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-muted-foreground">
           {isLoading ? "Loading..." : `${logs.length} record${logs.length !== 1 ? "s" : ""}`}
         </div>
       </div>
 
       {/* Maintenance Table */}
-      <div className="border rounded-lg overflow-hidden bg-white">
+      <div className="border rounded-lg overflow-hidden bg-canvas">
         {isLoading ? (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center text-muted-foreground">
             Loading maintenance logs...
           </div>
         ) : logs.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center text-muted-foreground">
             No maintenance records found. {(statusFilter || vehicleFilter) && "Try changing the filters or "}
             Open a maintenance record to get started.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b">
+              <thead className="bg-surface-card border-b">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Vehicle
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Description
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Cost
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Opened Date
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Closed Date
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-hairline">
                 {logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50">
+                  <tr key={log.id} className="hover:bg-surface-card">
                     <td className="px-4 py-3">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-foreground">
                         {log.vehicle.registrationNumber}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-muted-foreground">
                         {log.vehicle.name}
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-sm text-gray-900 max-w-xs truncate" title={log.description}>
+                      <div className="text-sm text-foreground max-w-xs truncate" title={log.description}>
                         {log.description}
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-foreground">
                         {formatCurrency(log.cost)}
                       </div>
                     </td>
@@ -245,10 +256,10 @@ export function MaintenanceList({ refreshTrigger = 0 }: MaintenanceListProps) {
                         {log.closed ? "Closed" : "Open"}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
+                    <td className="px-4 py-3 text-sm text-foreground">
                       {formatDate(log.openedAt)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
+                    <td className="px-4 py-3 text-sm text-foreground">
                       {log.closedAt ? formatDate(log.closedAt) : "-"}
                     </td>
                     <td className="px-4 py-3">
@@ -270,7 +281,7 @@ export function MaintenanceList({ refreshTrigger = 0 }: MaintenanceListProps) {
                           </>
                         )}
                         {log.closed && (
-                          <span className="text-sm text-gray-500">No actions</span>
+                          <span className="text-sm text-muted-foreground">No actions</span>
                         )}
                       </div>
                     </td>

@@ -192,7 +192,7 @@ export function VehicleList() {
       Available: "bg-green-100 text-green-800 hover:bg-green-100",
       "On Trip": "bg-blue-100 text-blue-800 hover:bg-blue-100",
       "In Shop": "bg-yellow-100 text-yellow-800 hover:bg-yellow-100",
-      Retired: "bg-gray-100 text-gray-800 hover:bg-gray-100",
+      Retired: "bg-surface-card text-foreground hover:bg-surface-card",
     };
     return variants[status] || "";
   };
@@ -213,7 +213,7 @@ export function VehicleList() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-gray-500">Loading vehicles...</p>
+        <p className="text-muted-foreground">Loading vehicles...</p>
       </div>
     );
   }
@@ -308,7 +308,7 @@ export function VehicleList() {
       </div>
 
       {/* Results Count */}
-      <div className="text-sm text-gray-600">
+      <div className="text-sm text-muted-foreground">
         Showing {filteredVehicles.length} of {vehicles.length} vehicles
       </div>
 
@@ -375,7 +375,7 @@ export function VehicleList() {
           <TableBody>
             {sortedVehicles.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-gray-500 py-8">
+                <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                   No vehicles found
                 </TableCell>
               </TableRow>

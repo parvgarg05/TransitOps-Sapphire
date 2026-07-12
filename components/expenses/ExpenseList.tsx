@@ -27,7 +27,7 @@ interface ExpenseListProps {
 const CATEGORY_COLORS: Record<string, string> = {
   toll: "bg-green-100 text-green-800 hover:bg-green-100",
   "maintenance charge": "bg-orange-100 text-orange-800 hover:bg-orange-100",
-  other: "bg-gray-100 text-gray-800 hover:bg-gray-100",
+  other: "bg-surface-card text-foreground hover:bg-surface-card",
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -66,7 +66,7 @@ export function ExpenseList({ expenses, vehicles }: ExpenseListProps) {
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
           <div className="space-y-3">
             <div>
-              <p className="text-gray-600 text-sm">Total Expenses</p>
+              <p className="text-muted-foreground text-sm">Total Expenses</p>
               <p className="text-2xl font-semibold text-purple-900">
                 ₹
                 {totalCost.toLocaleString("en-IN", {
@@ -80,7 +80,7 @@ export function ExpenseList({ expenses, vehicles }: ExpenseListProps) {
               <div className="grid grid-cols-3 gap-2 pt-2 border-t border-purple-200">
                 {Object.entries(categoryTotals).map(([category, cost]) => (
                   <div key={category} className="text-sm">
-                    <p className="text-gray-600 capitalize">
+                    <p className="text-muted-foreground capitalize">
                       {CATEGORY_LABELS[category] || category}
                     </p>
                     <p className="font-medium text-purple-900">
@@ -108,7 +108,7 @@ export function ExpenseList({ expenses, vehicles }: ExpenseListProps) {
           <TableBody>
             {sortedExpenses.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-gray-500 py-8">
+                <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
                   No expenses found
                 </TableCell>
               </TableRow>
@@ -145,7 +145,7 @@ export function ExpenseList({ expenses, vehicles }: ExpenseListProps) {
       </div>
 
       {expenses.length > 0 && (
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           Showing {sortedExpenses.length} expense{sortedExpenses.length !== 1 ? "s" : ""}
         </p>
       )}

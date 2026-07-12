@@ -147,7 +147,7 @@ export function ExpenseManagement() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-muted-foreground">Loading...</p>
       </div>
     );
   }
@@ -170,7 +170,7 @@ export function ExpenseManagement() {
           className={`px-4 py-2 font-medium transition-colors ${
             activeTab === "fuel"
               ? "border-b-2 border-primary text-foreground"
-              : "text-gray-600 hover:text-gray-900"
+              : "text-muted-foreground hover:text-foreground"
           }`}
         >
           Fuel Logs
@@ -180,7 +180,7 @@ export function ExpenseManagement() {
           className={`px-4 py-2 font-medium transition-colors ${
             activeTab === "expense"
               ? "border-b-2 border-primary text-foreground"
-              : "text-gray-600 hover:text-gray-900"
+              : "text-muted-foreground hover:text-foreground"
           }`}
         >
           Expenses
@@ -190,7 +190,7 @@ export function ExpenseManagement() {
           className={`px-4 py-2 font-medium transition-colors ${
             activeTab === "operational-cost"
               ? "border-b-2 border-primary text-foreground"
-              : "text-gray-600 hover:text-gray-900"
+              : "text-muted-foreground hover:text-foreground"
           }`}
         >
           Operational Cost

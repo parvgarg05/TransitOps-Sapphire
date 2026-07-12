@@ -83,28 +83,28 @@ export function RetireDialog({
         </DialogHeader>
 
         {/* Vehicle Information */}
-        <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+        <div className="bg-surface-card p-4 rounded-lg space-y-2">
           <div className="flex justify-between">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-muted-foreground">
               Registration Number:
             </span>
-            <span className="text-sm text-gray-900">
+            <span className="text-sm text-foreground">
               {vehicle.registrationNumber}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-sm font-medium text-gray-700">Name:</span>
-            <span className="text-sm text-gray-900">{vehicle.name}</span>
+            <span className="text-sm font-medium text-muted-foreground">Name:</span>
+            <span className="text-sm text-foreground">{vehicle.name}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-sm font-medium text-gray-700">Type:</span>
-            <span className="text-sm text-gray-900">{vehicle.type}</span>
+            <span className="text-sm font-medium text-muted-foreground">Type:</span>
+            <span className="text-sm text-foreground">{vehicle.type}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-muted-foreground">
               Current Status:
             </span>
-            <span className="text-sm text-gray-900">{vehicle.status}</span>
+            <span className="text-sm text-foreground">{vehicle.status}</span>
           </div>
         </div>
 

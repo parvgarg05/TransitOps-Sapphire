@@ -122,11 +122,11 @@ export function UpdateCostDialog({ log, onCostUpdated }: UpdateCostDialogProps) 
 
           <div className="grid gap-4 py-4">
             {/* Vehicle Info */}
-            <div className="p-3 bg-gray-50 border rounded-md">
-              <p className="text-sm font-medium text-gray-900">
+            <div className="p-3 bg-surface-card border rounded-md">
+              <p className="text-sm font-medium text-foreground">
                 {log.vehicle.registrationNumber} - {log.vehicle.name}
               </p>
-              <p className="text-xs text-gray-500 mt-1 truncate" title={log.description}>
+              <p className="text-xs text-muted-foreground mt-1 truncate" title={log.description}>
                 {log.description}
               </p>
             </div>
@@ -148,7 +148,7 @@ export function UpdateCostDialog({ log, onCostUpdated }: UpdateCostDialogProps) 
                 disabled={isLoading}
                 required
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Valid range: $0.00 to $999,999,999.99
               </p>
             </div>

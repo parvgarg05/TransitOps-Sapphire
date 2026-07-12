@@ -186,11 +186,11 @@ export function DriverList({ drivers, onEdit, onRefresh }: DriverListProps) {
     const statusColors: Record<string, string> = {
       Available: "bg-green-100 text-green-800",
       "On Trip": "bg-blue-100 text-blue-800",
-      "Off Duty": "bg-gray-100 text-gray-800",
+      "Off Duty": "bg-surface-card text-foreground",
       Suspended: "bg-red-100 text-red-800",
     };
 
-    const colorClass = statusColors[status] || "bg-gray-100 text-gray-800";
+    const colorClass = statusColors[status] || "bg-surface-card text-foreground";
 
     return (
       <span
@@ -203,19 +203,19 @@ export function DriverList({ drivers, onEdit, onRefresh }: DriverListProps) {
 
   if (drivers.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow p-8 text-center">
-        <p className="text-gray-500">No drivers found. Create your first driver to get started.</p>
+      <div className="bg-canvas rounded-lg shadow p-8 text-center">
+        <p className="text-muted-foreground">No drivers found. Create your first driver to get started.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow">
+    <div className="bg-canvas rounded-lg shadow">
       {/* Filters */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-6 border-b border-hairline">
         {/* Search */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-muted-foreground mb-1">
             Search
           </label>
           <div className="relative md:max-w-xs">
@@ -232,14 +232,14 @@ export function DriverList({ drivers, onEdit, onRefresh }: DriverListProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Status Filter */}
           <div>
-            <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="status-filter" className="block text-sm font-medium text-muted-foreground mb-1">
               Filter by Status
             </label>
             <select
               id="status-filter"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-hairline rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Statuses</option>
               {uniqueStatuses.map((status) => (
@@ -252,14 +252,14 @@ export function DriverList({ drivers, onEdit, onRefresh }: DriverListProps) {
 
           {/* Category Filter */}
           <div>
-            <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="category-filter" className="block text-sm font-medium text-muted-foreground mb-1">
               Filter by License Category
             </label>
             <select
               id="category-filter"
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-hairline rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Categories</option>
               {uniqueCategories.map((category) => (
@@ -272,14 +272,14 @@ export function DriverList({ drivers, onEdit, onRefresh }: DriverListProps) {
 
           {/* Validity Filter */}
           <div>
-            <label htmlFor="validity-filter" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="validity-filter" className="block text-sm font-medium text-muted-foreground mb-1">
               Filter by License Validity
             </label>
             <select
               id="validity-filter"
               value={validityFilter}
               onChange={(e) => setValidityFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-hairline rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All</option>
               <option value="valid">Valid</option>
@@ -290,17 +290,17 @@ export function DriverList({ drivers, onEdit, onRefresh }: DriverListProps) {
         </div>
 
         {/* Results count */}
-        <div className="mt-4 text-sm text-gray-600">
+        <div className="mt-4 text-sm text-muted-foreground">
           Showing {filteredDrivers.length} of {drivers.length} drivers
         </div>
       </div>
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-hairline">
+          <thead className="bg-surface-card">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 <button
                   type="button"
                   onClick={() => handleSort("name")}
@@ -310,13 +310,13 @@ export function DriverList({ drivers, onEdit, onRefresh }: DriverListProps) {
                   <SortIcon column="name" />
                 </button>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 License Number
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Category
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 <button
                   type="button"
                   onClick={() => handleSort("status")}
@@ -326,7 +326,7 @@ export function DriverList({ drivers, onEdit, onRefresh }: DriverListProps) {
                   <SortIcon column="status" />
                 </button>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 <button
                   type="button"
                   onClick={() => handleSort("licenseExpiryDate")}
@@ -336,10 +336,10 @@ export function DriverList({ drivers, onEdit, onRefresh }: DriverListProps) {
                   <SortIcon column="licenseExpiryDate" />
                 </button>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 License Validity
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 <button
                   type="button"
                   onClick={() => handleSort("safetyScore")}
@@ -349,36 +349,36 @@ export function DriverList({ drivers, onEdit, onRefresh }: DriverListProps) {
                   <SortIcon column="safetyScore" />
                 </button>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Contact
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-canvas divide-y divide-hairline">
             {sortedDrivers.map((driver) => (
-              <tr key={driver.id} className="hover:bg-gray-50">
+              <tr key={driver.id} className="hover:bg-surface-card">
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{driver.name}</div>
+                  <div className="text-sm font-medium text-foreground">{driver.name}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{driver.licenseNumber}</div>
+                  <div className="text-sm text-foreground">{driver.licenseNumber}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{driver.licenseCategory}</div>
+                  <div className="text-sm text-foreground">{driver.licenseCategory}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(driver.status)}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{formatDate(driver.licenseExpiryDate)}</div>
+                  <div className="text-sm text-foreground">{formatDate(driver.licenseExpiryDate)}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">{getLicenseValidityBadge(driver)}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{driver.safetyScore.toFixed(1)}</div>
+                  <div className="text-sm text-foreground">{driver.safetyScore.toFixed(1)}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{driver.contactNumber}</div>
+                  <div className="text-sm text-foreground">{driver.contactNumber}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button
@@ -394,7 +394,7 @@ export function DriverList({ drivers, onEdit, onRefresh }: DriverListProps) {
         </table>
 
         {filteredDrivers.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted-foreground">
             No drivers match the selected filters.
           </div>
         )}

@@ -57,12 +57,12 @@ export function FilterBar({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+    <div className="bg-canvas dark:bg-gray-800 rounded-lg border border-hairline dark:border-gray-700 p-4">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex flex-wrap gap-3 flex-1">
           {/* Vehicle Type Filter */}
           <div className="flex-1 min-w-[150px] max-w-[200px]">
-            <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">
+            <label className="text-xs font-medium text-muted-foreground dark:text-muted-foreground mb-1 block">
               Vehicle Type
             </label>
             <Select
@@ -85,7 +85,7 @@ export function FilterBar({
 
           {/* Status Filter */}
           <div className="flex-1 min-w-[150px] max-w-[200px]">
-            <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">
+            <label className="text-xs font-medium text-muted-foreground dark:text-muted-foreground mb-1 block">
               Status
             </label>
             <Select
@@ -108,7 +108,7 @@ export function FilterBar({
 
           {/* Region Filter */}
           <div className="flex-1 min-w-[150px] max-w-[200px]">
-            <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">
+            <label className="text-xs font-medium text-muted-foreground dark:text-muted-foreground mb-1 block">
               Region
             </label>
             <Select
@@ -146,9 +146,9 @@ export function FilterBar({
 
       {/* Active Filters Summary */}
       {hasActiveFilters && (
-        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+        <div className="mt-3 pt-3 border-t border-hairline dark:border-gray-700">
           <div className="flex flex-wrap gap-2 items-center text-xs">
-            <span className="text-gray-600 dark:text-gray-400">
+            <span className="text-muted-foreground dark:text-muted-foreground">
               Active filters:
             </span>
             {filters.vehicleType && (

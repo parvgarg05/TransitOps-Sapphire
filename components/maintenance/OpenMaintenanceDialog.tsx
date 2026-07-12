@@ -152,7 +152,7 @@ export function OpenMaintenanceDialog({ onMaintenanceOpened }: OpenMaintenanceDi
                 ))}
               </NativeSelect>
               {vehicles.length === 0 && (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   No vehicles available for maintenance. All vehicles may be Retired.
                 </p>
               )}
@@ -189,7 +189,7 @@ export function OpenMaintenanceDialog({ onMaintenanceOpened }: OpenMaintenanceDi
                 disabled={isLoading}
                 required
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Describe the maintenance work to be performed
               </p>
             </div>

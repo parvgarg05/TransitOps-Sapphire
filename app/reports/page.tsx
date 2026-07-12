@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { ReportCard } from "@/components/reports/ReportCard";
 import { ReportCharts } from "@/components/reports/ReportCharts";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useToast } from "@/components/ui/toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -59,6 +60,7 @@ export default function ReportsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchReports();
@@ -115,8 +117,17 @@ export default function ReportsPage() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      toast({
+        title: "CSV exported",
+        description: "Your report download has started.",
+        variant: "success",
+      });
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to export CSV");
+      toast({
+        title: "CSV export failed",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "error",
+      });
     } finally {
       setIsExporting(false);
     }
@@ -176,9 +187,18 @@ export default function ReportsPage() {
       });
 
       doc.save(`transitops-report-${new Date().toISOString().split("T")[0]}.pdf`);
+      toast({
+        title: "PDF exported",
+        description: "Your report download has started.",
+        variant: "success",
+      });
     } catch (err) {
       // Requirement 12.2: show an export error on failure.
-      alert(err instanceof Error ? err.message : "Failed to export PDF");
+      toast({
+        title: "PDF export failed",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "error",
+      });
     } finally {
       setIsExportingPDF(false);
     }
@@ -295,9 +315,9 @@ export default function ReportsPage() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="text-center py-8 text-gray-500">Loading...</div>
+              <div className="text-center py-8 text-muted-foreground">Loading...</div>
             ) : fuelEfficiency.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-muted-foreground">
                 No fuel efficiency data available
               </div>
             ) : (
@@ -316,7 +336,7 @@ export default function ReportsPage() {
                         <TableCell className="font-medium">
                           {vehicle.name}
                         </TableCell>
-                        <TableCell className="text-gray-600 dark:text-gray-400">
+                        <TableCell className="text-muted-foreground dark:text-muted-foreground">
                           {vehicle.registrationNumber}
                         </TableCell>
                         <TableCell className="text-right">
@@ -343,9 +363,9 @@ export default function ReportsPage() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="text-center py-8 text-gray-500">Loading...</div>
+              <div className="text-center py-8 text-muted-foreground">Loading...</div>
             ) : vehicleROI.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-muted-foreground">
                 No ROI data available
               </div>
             ) : (
@@ -364,7 +384,7 @@ export default function ReportsPage() {
                         <TableCell className="font-medium">
                           {vehicle.name}
                         </TableCell>
-                        <TableCell className="text-gray-600 dark:text-gray-400">
+                        <TableCell className="text-muted-foreground dark:text-muted-foreground">
                           {vehicle.registrationNumber}
                         </TableCell>
                         <TableCell className="text-right">
