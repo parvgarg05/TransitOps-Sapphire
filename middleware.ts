@@ -14,6 +14,7 @@
 
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 import { isSessionExpired } from "./domain/session";
 import { can, type Action } from "./domain/rbac";
 import type { Role } from "./domain/types";
@@ -130,69 +131,53 @@ function getRequiredAction(pathname: string): Action | null {
 }
 
 /**
- * Extracts session data from the request.
- * In a real implementation, this would decode a JWT or query a session store.
- * For now, it expects session data in a cookie or header.
+ * Session data extracted from the NextAuth JWT.
  */
-function getSession(request: NextRequest): {
+interface SessionInfo {
   userId: string;
   role: Role;
   lastActivityAt: Date;
-} | null {
-  // In a production implementation, this would:
-  // 1. Read the session cookie or JWT
-  // 2. Verify and decode it
-  // 3. Return the session data
-  
-  // For now, we'll check for a session cookie
-  const sessionCookie = request.cookies.get("session");
-  if (!sessionCookie) {
-    return null;
-  }
-
-  try {
-    // In production, decode and verify the JWT here
-    // This is a placeholder that assumes the cookie contains JSON
-    const sessionData = JSON.parse(sessionCookie.value);
-    
-    return {
-      userId: sessionData.userId,
-      role: sessionData.role as Role,
-      lastActivityAt: new Date(sessionData.lastActivityAt),
-    };
-  } catch {
-    return null;
-  }
 }
 
 /**
- * Updates the session's last activity timestamp.
- * Returns a response with the updated session cookie.
+ * Reads and verifies the NextAuth JWT from the request.
+ *
+ * The token is issued by Auth.js (see lib/auth.ts) and carries the user id,
+ * role, and a rolling `lastActivity` timestamp used for idle-timeout checks.
  */
-function updateSessionActivity(
-  response: NextResponse,
-  session: { userId: string; role: Role; lastActivityAt: Date }
-): NextResponse {
-  const updatedSession = {
-    ...session,
-    lastActivityAt: new Date().toISOString(),
-  };
-
-  response.cookies.set("session", JSON.stringify(updatedSession), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24, // 24 hours
+async function getSessionFromToken(
+  request: NextRequest
+): Promise<SessionInfo | null> {
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
   });
 
-  return response;
+  if (!token || !token.role) {
+    return null;
+  }
+
+  // `lastActivity` is stamped (ms since epoch) by the jwt callback; fall back to
+  // the token issued-at (`iat`, seconds) when absent.
+  const lastActivityMs =
+    typeof token.lastActivity === "number"
+      ? token.lastActivity
+      : typeof token.iat === "number"
+        ? token.iat * 1000
+        : Date.now();
+
+  return {
+    userId: (token.id as string) ?? (token.sub as string) ?? "",
+    role: token.role as Role,
+    lastActivityAt: new Date(lastActivityMs),
+  };
 }
 
 // ============================================================================
 // Middleware Function
 // ============================================================================
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Step 1: Allow public routes to pass through
@@ -200,9 +185,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Step 2: Verify session exists
-  const session = getSession(request);
-  
+  // Step 2: Verify a valid NextAuth session exists
+  const session = await getSessionFromToken(request);
+
   if (!session) {
     // No session: redirect app pages to /login, return 401 for API
     if (isApiRoute(pathname)) {
@@ -211,7 +196,7 @@ export function middleware(request: NextRequest) {
         { status: 401 }
       );
     }
-    
+
     // Redirect to login with no page content
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
@@ -221,22 +206,18 @@ export function middleware(request: NextRequest) {
   // Step 3: Check idle timeout (Requirement 1.7)
   const now = new Date();
   if (isSessionExpired(session.lastActivityAt, now)) {
-    // Session expired: clear session and redirect/return 401
-    const response = isApiRoute(pathname)
-      ? NextResponse.json(
-          { error: "Unauthorized: Session expired due to inactivity" },
-          { status: 401 }
-        )
-      : NextResponse.redirect(new URL("/login?expired=true", request.url));
-    
-    // Clear the session cookie
-    response.cookies.delete("session");
-    return response;
+    if (isApiRoute(pathname)) {
+      return NextResponse.json(
+        { error: "Unauthorized: Session expired due to inactivity" },
+        { status: 401 }
+      );
+    }
+    return NextResponse.redirect(new URL("/login?expired=true", request.url));
   }
 
   // Step 4: Check RBAC permissions (Requirements 2.2, 2.3, 2.4)
   const requiredAction = getRequiredAction(pathname);
-  
+
   if (requiredAction && !can(session.role, requiredAction)) {
     // Not authorized: return 403 with no data change
     if (isApiRoute(pathname)) {
@@ -249,14 +230,19 @@ export function middleware(request: NextRequest) {
         { status: 403 }
       );
     }
-    
-    // For app pages, redirect to a forbidden page or dashboard
-    return NextResponse.redirect(new URL("/dashboard?error=forbidden", request.url));
+
+    // For app pages, redirect to the dashboard with a forbidden flag. If the
+    // role cannot even view the dashboard (would loop), send them to /login.
+    const fallback =
+      can(session.role, "dashboard:view") &&
+      !pathname.startsWith("/dashboard")
+        ? "/dashboard?error=forbidden"
+        : "/login?error=forbidden";
+    return NextResponse.redirect(new URL(fallback, request.url));
   }
 
-  // Step 5: Session is valid and authorized - update activity timestamp and continue
-  const response = NextResponse.next();
-  return updateSessionActivity(response, session);
+  // Step 5: Session is valid and authorized - continue
+  return NextResponse.next();
 }
 
 // ============================================================================

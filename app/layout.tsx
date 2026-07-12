@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
+import { SessionProvider } from "@/components/providers/SessionProvider";
+import { AppShell } from "@/components/layout/AppShell";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
@@ -17,7 +19,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={cn("font-sans", inter.variable)}>
-      <body>{children}</body>
+      <body>
+        <SessionProvider>
+          <AppShell>{children}</AppShell>
+        </SessionProvider>
+      </body>
     </html>
   )
 }

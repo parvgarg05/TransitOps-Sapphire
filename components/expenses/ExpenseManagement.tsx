@@ -169,7 +169,7 @@ export function ExpenseManagement() {
           onClick={() => setActiveTab("fuel")}
           className={`px-4 py-2 font-medium transition-colors ${
             activeTab === "fuel"
-              ? "border-b-2 border-blue-500 text-blue-600"
+              ? "border-b-2 border-primary text-foreground"
               : "text-gray-600 hover:text-gray-900"
           }`}
         >
@@ -179,7 +179,7 @@ export function ExpenseManagement() {
           onClick={() => setActiveTab("expense")}
           className={`px-4 py-2 font-medium transition-colors ${
             activeTab === "expense"
-              ? "border-b-2 border-blue-500 text-blue-600"
+              ? "border-b-2 border-primary text-foreground"
               : "text-gray-600 hover:text-gray-900"
           }`}
         >
@@ -189,7 +189,7 @@ export function ExpenseManagement() {
           onClick={() => setActiveTab("operational-cost")}
           className={`px-4 py-2 font-medium transition-colors ${
             activeTab === "operational-cost"
-              ? "border-b-2 border-blue-500 text-blue-600"
+              ? "border-b-2 border-primary text-foreground"
               : "text-gray-600 hover:text-gray-900"
           }`}
         >

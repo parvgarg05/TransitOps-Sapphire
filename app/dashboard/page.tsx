@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { FilterBar, DashboardFilters } from "@/components/dashboard/FilterBar";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/layout/PageHeader";
 import {
   Car,
   Users,
@@ -145,43 +146,41 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 px-4 max-w-7xl">
+    <div className="mx-auto max-w-content py-8 px-4 sm:px-6">
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Operations Dashboard</h1>
-            <div className="flex items-center gap-2">
-              <p className="text-gray-600 dark:text-gray-400">
-                Real-time fleet operations metrics
-              </p>
-              {data?.role && (
-                <Badge variant="secondary" className="text-xs">
-                  {data.role}
-                </Badge>
-              )}
-            </div>
-          </div>
-          <Button
-            onClick={toggleView}
-            variant="outline"
-            className="flex items-center gap-2 self-start sm:self-auto"
-          >
-            {view === "default" ? (
-              <>
-                <Maximize2 className="h-4 w-4" />
-                Show All KPIs
-              </>
-            ) : (
-              <>
-                <Minimize2 className="h-4 w-4" />
-                Default View
-              </>
+      <PageHeader
+        title="Operations Dashboard"
+        description="Real-time fleet operations metrics."
+        actions={
+          <>
+            {data?.role && (
+              <Badge variant="secondary" className="text-xs">
+                {data.role}
+              </Badge>
             )}
-          </Button>
-        </div>
+            <Button
+              onClick={toggleView}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              {view === "default" ? (
+                <>
+                  <Maximize2 className="h-4 w-4" />
+                  Show All KPIs
+                </>
+              ) : (
+                <>
+                  <Minimize2 className="h-4 w-4" />
+                  Default View
+                </>
+              )}
+            </Button>
+          </>
+        }
+      />
 
-        {/* Filters */}
+      {/* Filters */}
+      <div className="mb-6">
         <FilterBar
           filters={filters}
           onFiltersChange={setFilters}
@@ -364,10 +363,10 @@ export default function DashboardPage() {
       {/* Loading State */}
       {isLoading && (
         <div className="fixed inset-0 bg-black/20 dark:bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-xl">
+          <div className="bg-canvas rounded-lg p-6 shadow-elevated border border-hairline">
             <div className="flex items-center gap-3">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-              <span className="text-gray-700 dark:text-gray-300">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              <span className="text-foreground">
                 Loading dashboard...
               </span>
             </div>

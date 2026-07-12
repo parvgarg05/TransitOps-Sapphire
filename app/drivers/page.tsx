@@ -11,6 +11,8 @@
 import { useState, useEffect } from "react";
 import { DriverList } from "@/components/drivers/DriverList";
 import { DriverForm } from "@/components/drivers/DriverForm";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
 
 export interface DriverWithValidity {
   id: string;
@@ -75,64 +77,50 @@ export default function DriversPage() {
     fetchDrivers(); // Refresh the list
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-center py-12">
-            <div className="text-gray-500">Loading drivers...</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Driver Management</h1>
-          <p className="text-gray-600 mt-2">
-            Manage driver profiles, licenses, and compliance information
-          </p>
+    <div className="mx-auto max-w-content px-4 sm:px-6 py-8">
+      <PageHeader
+        title="Driver Management"
+        description="Manage driver profiles, licenses, and compliance information."
+        actions={
+          !showForm ? (
+            <Button onClick={handleCreateDriver}>Create New Driver</Button>
+          ) : undefined
+        }
+      />
+
+      {/* Error Display */}
+      {error && (
+        <div className="mb-6 rounded-md border border-error/30 bg-error/10 p-4">
+          <p className="text-sm text-error">{error}</p>
         </div>
+      )}
 
-        {/* Error Display */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800">{error}</p>
-          </div>
-        )}
-
-        {/* Create Button */}
-        <div className="mb-6">
-          <button
-            onClick={handleCreateDriver}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Create New Driver
-          </button>
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-muted-foreground">Loading drivers...</div>
         </div>
+      ) : (
+        <>
+          {/* Driver List */}
+          {!showForm && (
+            <DriverList
+              drivers={drivers}
+              onEdit={handleEditDriver}
+              onRefresh={fetchDrivers}
+            />
+          )}
 
-        {/* Driver List */}
-        {!showForm && (
-          <DriverList
-            drivers={drivers}
-            onEdit={handleEditDriver}
-            onRefresh={fetchDrivers}
-          />
-        )}
-
-        {/* Driver Form */}
-        {showForm && (
-          <DriverForm
-            driver={editingDriver}
-            onClose={handleCloseForm}
-            onSuccess={handleFormSuccess}
-          />
-        )}
-      </div>
+          {/* Driver Form */}
+          {showForm && (
+            <DriverForm
+              driver={editingDriver}
+              onClose={handleCloseForm}
+              onSuccess={handleFormSuccess}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 }

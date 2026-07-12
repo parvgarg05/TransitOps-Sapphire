@@ -16,6 +16,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ReportCard } from "@/components/reports/ReportCard";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -138,23 +139,21 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Analytics Reports</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            View comprehensive fleet analytics and performance metrics
-          </p>
-        </div>
-        <Button
-          onClick={handleExportCSV}
-          disabled={isExporting}
-          className="flex items-center gap-2"
-        >
-          <Download className="h-4 w-4" />
-          {isExporting ? "Exporting..." : "Export CSV"}
-        </Button>
-      </div>
+    <div className="mx-auto max-w-content py-8 px-4 sm:px-6">
+      <PageHeader
+        title="Analytics Reports"
+        description="View comprehensive fleet analytics and performance metrics."
+        actions={
+          <Button
+            onClick={handleExportCSV}
+            disabled={isExporting}
+            className="flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            {isExporting ? "Exporting..." : "Export CSV"}
+          </Button>
+        }
+      />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
