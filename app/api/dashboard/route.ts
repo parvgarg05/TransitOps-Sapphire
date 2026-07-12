@@ -45,13 +45,18 @@ function mapVehicleStatus(status: string): VehicleStatus {
 
 function mapRole(roleType: string): Role {
   switch (roleType) {
+    // DB enum form (defensive) …
     case "FLEET_MANAGER":
+    case "Fleet Manager":
       return "Fleet Manager";
     case "DRIVER":
+    case "Driver":
       return "Driver";
     case "SAFETY_OFFICER":
+    case "Safety Officer":
       return "Safety Officer";
     case "FINANCIAL_ANALYST":
+    case "Financial Analyst":
       return "Financial Analyst";
     default:
       return "Fleet Manager";
