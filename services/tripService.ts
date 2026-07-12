@@ -5,8 +5,9 @@
  * - List trips with optional status filtering
  * - Get dispatch pool (eligible vehicles and drivers)
  * - Create trips with full validation (field validation, capacity check, conflict check)
+ * - Transactional trip state transitions (dispatch, complete, cancel)
  * 
- * Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 7.2
+ * Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 7.2
  */
 
 import { prisma } from '../lib/db';
@@ -15,6 +16,7 @@ import { validateTripCreation, CreateTripInput } from '../domain/validators/trip
 import { eligibleVehicles, eligibleDrivers } from '../domain/dispatch';
 import { capacityOk, assignmentConflict } from '../domain/capacityConflict';
 import { Prisma } from '@prisma/client';
+import * as TripStateMachine from '../domain/tripStateMachine';
 
 /**
  * Converts Prisma enum to domain TripStatus type
@@ -101,13 +103,14 @@ function toDomainDriver(prismaDriver: any): Driver {
 
 /**
  * List all trips, optionally filtered by status.
+ * Includes vehicle and driver information.
  * 
  * Requirement 5.1: Support listing trips
  * 
  * @param statusFilter - Optional status to filter by (Draft, Dispatched, Completed, Cancelled)
- * @returns Array of trips matching the filter
+ * @returns Array of trips matching the filter with vehicle and driver data
  */
-export async function listTrips(statusFilter?: TripStatus): Promise<Trip[]> {
+export async function listTrips(statusFilter?: TripStatus): Promise<any[]> {
   // Map domain status to Prisma enum if filter provided
   const prismaStatusMap: Record<TripStatus, string> = {
     'Draft': 'DRAFT',
@@ -118,10 +121,26 @@ export async function listTrips(statusFilter?: TripStatus): Promise<Trip[]> {
 
   const prismaTrips = await prisma.trip.findMany({
     where: statusFilter ? { status: prismaStatusMap[statusFilter] as any } : undefined,
+    include: {
+      vehicle: true,
+      driver: true,
+    },
     orderBy: { createdAt: 'desc' },
   });
 
-  return prismaTrips.map(toDomainTrip);
+  return prismaTrips.map((trip) => ({
+    ...toDomainTrip(trip),
+    vehicle: trip.vehicle ? {
+      id: trip.vehicle.id,
+      registrationNumber: trip.vehicle.registrationNumber,
+      name: trip.vehicle.name,
+    } : null,
+    driver: trip.driver ? {
+      id: trip.driver.id,
+      name: trip.driver.name,
+      licenseNumber: trip.driver.licenseNumber,
+    } : null,
+  }));
 }
 
 /**
@@ -257,4 +276,317 @@ export async function createTrip(
     success: true,
     trip: toDomainTrip(createdTrip),
   };
+}
+
+/**
+ * Result type for trip transition operations.
+ */
+export type TripTransitionResult =
+  | { success: true; trip: Trip }
+  | { success: false; error: string };
+
+/**
+ * Dispatch a Draft trip to Dispatched status.
+ * 
+ * Uses the trip state machine to validate and compute the next state.
+ * Atomically updates Trip, Vehicle, and Driver in a single transaction.
+ * 
+ * Requirements:
+ * - 6.2: Set Trip Status to Dispatched, Vehicle and Driver to On Trip
+ * - 6.6: Reject if trip is not in Draft status
+ * 
+ * @param tripId - ID of the trip to dispatch
+ * @returns TripTransitionResult with updated trip or error
+ */
+export async function dispatchTrip(tripId: string): Promise<TripTransitionResult> {
+  try {
+    // Fetch the trip with related entities
+    const prismaTrip = await prisma.trip.findUnique({
+      where: { id: tripId },
+      include: {
+        vehicle: true,
+        driver: true,
+      },
+    });
+
+    if (!prismaTrip) {
+      return { success: false, error: 'Trip not found' };
+    }
+
+    // Convert to domain types
+    const domainTrip = toDomainTrip(prismaTrip);
+    const domainVehicle = toDomainVehicle(prismaTrip.vehicle);
+    const domainDriver = toDomainDriver(prismaTrip.driver);
+
+    // Validate transition using state machine
+    const transition = TripStateMachine.dispatchTrip(domainTrip);
+
+    if (!transition.ok) {
+      return { success: false, error: transition.error };
+    }
+
+    // Map domain statuses to Prisma enums
+    const prismaStatusMap = {
+      Draft: 'DRAFT',
+      Dispatched: 'DISPATCHED',
+      Completed: 'COMPLETED',
+      Cancelled: 'CANCELLED',
+    };
+
+    const prismaVehicleStatusMap = {
+      Available: 'AVAILABLE',
+      'On Trip': 'ON_TRIP',
+      'In Shop': 'IN_SHOP',
+      Retired: 'RETIRED',
+    };
+
+    const prismaDriverStatusMap = {
+      Available: 'AVAILABLE',
+      'On Trip': 'ON_TRIP',
+      'Off Duty': 'OFF_DUTY',
+      Suspended: 'SUSPENDED',
+    };
+
+    // Execute all updates in a single transaction (atomicity requirement)
+    const updatedTrip = await prisma.$transaction(async (tx) => {
+      // Update trip status
+      const trip = await tx.trip.update({
+        where: { id: tripId },
+        data: { status: prismaStatusMap[transition.trip] as any },
+      });
+
+      // Update vehicle status
+      await tx.vehicle.update({
+        where: { id: domainVehicle.id },
+        data: { status: prismaVehicleStatusMap[transition.vehicle] as any },
+      });
+
+      // Update driver status
+      await tx.driver.update({
+        where: { id: domainDriver.id },
+        data: { status: prismaDriverStatusMap[transition.driver] as any },
+      });
+
+      return trip;
+    });
+
+    return {
+      success: true,
+      trip: toDomainTrip(updatedTrip),
+    };
+  } catch (error) {
+    console.error('Error dispatching trip:', error);
+    return { success: false, error: 'Failed to dispatch trip' };
+  }
+}
+
+/**
+ * Complete a Dispatched trip to Completed status.
+ * 
+ * Uses the trip state machine to validate inputs and compute the next state.
+ * Atomically updates Trip (including finalOdometer and fuelConsumed),
+ * Vehicle (status and odometer), and Driver in a single transaction.
+ * 
+ * Requirements:
+ * - 6.3: Set Trip Status to Completed, Vehicle and Driver to Available
+ * - 6.5: Update vehicle odometer to final reading
+ * - 6.6: Reject if trip is not in Dispatched status
+ * - 6.7: Reject if finalOdometer < current odometer or fuelConsumed < 0
+ * 
+ * @param tripId - ID of the trip to complete
+ * @param finalOdometer - Final odometer reading (must be >= current vehicle odometer)
+ * @param fuelConsumed - Fuel consumed during trip (must be >= 0)
+ * @returns TripTransitionResult with updated trip or error
+ */
+export async function completeTrip(
+  tripId: string,
+  finalOdometer: number,
+  fuelConsumed: number
+): Promise<TripTransitionResult> {
+  try {
+    // Fetch the trip with related entities
+    const prismaTrip = await prisma.trip.findUnique({
+      where: { id: tripId },
+      include: {
+        vehicle: true,
+        driver: true,
+      },
+    });
+
+    if (!prismaTrip) {
+      return { success: false, error: 'Trip not found' };
+    }
+
+    // Convert to domain types
+    const domainTrip = toDomainTrip(prismaTrip);
+    const domainVehicle = toDomainVehicle(prismaTrip.vehicle);
+    const domainDriver = toDomainDriver(prismaTrip.driver);
+
+    // Validate transition using state machine
+    const transition = TripStateMachine.completeTrip(
+      domainTrip,
+      domainVehicle,
+      finalOdometer,
+      fuelConsumed
+    );
+
+    if (!transition.ok) {
+      return { success: false, error: transition.error };
+    }
+
+    // Map domain statuses to Prisma enums
+    const prismaStatusMap = {
+      Draft: 'DRAFT',
+      Dispatched: 'DISPATCHED',
+      Completed: 'COMPLETED',
+      Cancelled: 'CANCELLED',
+    };
+
+    const prismaVehicleStatusMap = {
+      Available: 'AVAILABLE',
+      'On Trip': 'ON_TRIP',
+      'In Shop': 'IN_SHOP',
+      Retired: 'RETIRED',
+    };
+
+    const prismaDriverStatusMap = {
+      Available: 'AVAILABLE',
+      'On Trip': 'ON_TRIP',
+      'Off Duty': 'OFF_DUTY',
+      Suspended: 'SUSPENDED',
+    };
+
+    // Execute all updates in a single transaction (atomicity requirement)
+    const updatedTrip = await prisma.$transaction(async (tx) => {
+      // Update trip status and final values
+      const trip = await tx.trip.update({
+        where: { id: tripId },
+        data: {
+          status: prismaStatusMap[transition.trip] as any,
+          finalOdometer: new Prisma.Decimal(finalOdometer),
+          fuelConsumed: new Prisma.Decimal(fuelConsumed),
+        },
+      });
+
+      // Update vehicle status AND odometer (Requirement 6.5)
+      await tx.vehicle.update({
+        where: { id: domainVehicle.id },
+        data: {
+          status: prismaVehicleStatusMap[transition.vehicle] as any,
+          odometer: new Prisma.Decimal(transition.newOdometer!),
+        },
+      });
+
+      // Update driver status
+      await tx.driver.update({
+        where: { id: domainDriver.id },
+        data: { status: prismaDriverStatusMap[transition.driver] as any },
+      });
+
+      return trip;
+    });
+
+    return {
+      success: true,
+      trip: toDomainTrip(updatedTrip),
+    };
+  } catch (error) {
+    console.error('Error completing trip:', error);
+    return { success: false, error: 'Failed to complete trip' };
+  }
+}
+
+/**
+ * Cancel a Dispatched trip to Cancelled status.
+ * 
+ * Uses the trip state machine to validate and compute the next state.
+ * Atomically updates Trip, Vehicle, and Driver in a single transaction.
+ * 
+ * Requirements:
+ * - 6.4: Set Trip Status to Cancelled, Vehicle and Driver to Available
+ * - 6.6: Reject if trip is not in Dispatched status
+ * 
+ * @param tripId - ID of the trip to cancel
+ * @returns TripTransitionResult with updated trip or error
+ */
+export async function cancelTrip(tripId: string): Promise<TripTransitionResult> {
+  try {
+    // Fetch the trip with related entities
+    const prismaTrip = await prisma.trip.findUnique({
+      where: { id: tripId },
+      include: {
+        vehicle: true,
+        driver: true,
+      },
+    });
+
+    if (!prismaTrip) {
+      return { success: false, error: 'Trip not found' };
+    }
+
+    // Convert to domain types
+    const domainTrip = toDomainTrip(prismaTrip);
+    const domainVehicle = toDomainVehicle(prismaTrip.vehicle);
+    const domainDriver = toDomainDriver(prismaTrip.driver);
+
+    // Validate transition using state machine
+    const transition = TripStateMachine.cancelTrip(domainTrip);
+
+    if (!transition.ok) {
+      return { success: false, error: transition.error };
+    }
+
+    // Map domain statuses to Prisma enums
+    const prismaStatusMap = {
+      Draft: 'DRAFT',
+      Dispatched: 'DISPATCHED',
+      Completed: 'COMPLETED',
+      Cancelled: 'CANCELLED',
+    };
+
+    const prismaVehicleStatusMap = {
+      Available: 'AVAILABLE',
+      'On Trip': 'ON_TRIP',
+      'In Shop': 'IN_SHOP',
+      Retired: 'RETIRED',
+    };
+
+    const prismaDriverStatusMap = {
+      Available: 'AVAILABLE',
+      'On Trip': 'ON_TRIP',
+      'Off Duty': 'OFF_DUTY',
+      Suspended: 'SUSPENDED',
+    };
+
+    // Execute all updates in a single transaction (atomicity requirement)
+    const updatedTrip = await prisma.$transaction(async (tx) => {
+      // Update trip status
+      const trip = await tx.trip.update({
+        where: { id: tripId },
+        data: { status: prismaStatusMap[transition.trip] as any },
+      });
+
+      // Update vehicle status
+      await tx.vehicle.update({
+        where: { id: domainVehicle.id },
+        data: { status: prismaVehicleStatusMap[transition.vehicle] as any },
+      });
+
+      // Update driver status
+      await tx.driver.update({
+        where: { id: domainDriver.id },
+        data: { status: prismaDriverStatusMap[transition.driver] as any },
+      });
+
+      return trip;
+    });
+
+    return {
+      success: true,
+      trip: toDomainTrip(updatedTrip),
+    };
+  } catch (error) {
+    console.error('Error cancelling trip:', error);
+    return { success: false, error: 'Failed to cancel trip' };
+  }
 }
