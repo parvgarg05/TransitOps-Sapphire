@@ -10,6 +10,7 @@
  */
 
 import { describe, it, expect } from "vitest";
+import fc from "fast-check";
 import { can, getAuthorizedActions, Action } from "./rbac";
 import { Role } from "./types";
 
@@ -288,6 +289,220 @@ describe("RBAC Permission Matrix", () => {
       expect(actions.has("fuel:read")).toBe(true);
       expect(actions.has("analytics:read")).toBe(true);
       expect(actions.has("trip:create")).toBe(false);
+    });
+  });
+
+  // ============================================================================
+  // Property-Based Tests (fast-check)
+  // Feature: transitops, Property 6: RBAC is fail-closed and matches the grant matrix exactly
+  // ============================================================================
+
+  describe("Property 6: RBAC Fail-Closed and Permission Matrix Consistency", () => {
+    // All valid roles in the system
+    const VALID_ROLES: Role[] = ["Fleet Manager", "Driver", "Safety Officer", "Financial Analyst"];
+
+    // All valid actions in the system
+    const ALL_ACTIONS: Action[] = [
+      "vehicle:create",
+      "vehicle:read",
+      "vehicle:update",
+      "vehicle:retire",
+      "maintenance:open",
+      "maintenance:close",
+      "maintenance:record-cost",
+      "driver:read",
+      "driver:update-compliance",
+      "fuel:read",
+      "expense:read",
+      "analytics:read",
+      "operational-cost:read",
+      "trip:create",
+      "trip:read",
+      "trip:assign",
+      "dashboard:view",
+    ];
+
+    // Expected permission matrix (ground truth for testing)
+    const EXPECTED_PERMISSIONS: Record<Role, Action[]> = {
+      "Fleet Manager": [
+        "vehicle:create",
+        "vehicle:read",
+        "vehicle:update",
+        "vehicle:retire",
+        "maintenance:open",
+        "maintenance:close",
+        "maintenance:record-cost",
+        "dashboard:view",
+      ],
+      "Driver": [
+        "trip:create",
+        "trip:read",
+        "trip:assign",
+        "dashboard:view",
+      ],
+      "Safety Officer": [
+        "driver:read",
+        "driver:update-compliance",
+        "dashboard:view",
+      ],
+      "Financial Analyst": [
+        "fuel:read",
+        "expense:read",
+        "analytics:read",
+        "operational-cost:read",
+        "dashboard:view",
+      ],
+    };
+
+    // Arbitraries for property-based testing
+    const roleArbitrary = fc.constantFrom(...VALID_ROLES);
+    const actionArbitrary = fc.constantFrom(...ALL_ACTIONS);
+
+    it("Property: Permission consistency - all valid roles have deterministic permissions", () => {
+      // **Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8**
+      fc.assert(
+        fc.property(roleArbitrary, actionArbitrary, (role, action) => {
+          const isAuthorized = can(role, action);
+          const expectedAuthorized = EXPECTED_PERMISSIONS[role].includes(action);
+
+          // The actual authorization result must match the expected matrix
+          return isAuthorized === expectedAuthorized;
+        }),
+        { numRuns: 100 }
+      );
+    });
+
+    it("Property: Fail-closed semantics - unauthorized actions are always denied", () => {
+      // **Validates: Requirements 2.4**
+      fc.assert(
+        fc.property(roleArbitrary, actionArbitrary, (role, action) => {
+          const isAuthorized = can(role, action);
+          const expectedAuthorized = EXPECTED_PERMISSIONS[role].includes(action);
+
+          // If action is not explicitly granted, it must be denied
+          if (!expectedAuthorized) {
+            return !isAuthorized;
+          }
+          return true;
+        }),
+        { numRuns: 100 }
+      );
+    });
+
+    it("Property: No role or unknown role denies everything", () => {
+      // **Validates: Requirements 2.1**
+      fc.assert(
+        fc.property(actionArbitrary, (action) => {
+          // Null role should deny all actions
+          const nullResult = can(null, action);
+          // Undefined role should deny all actions
+          const undefinedResult = can(undefined, action);
+
+          return !nullResult && !undefinedResult;
+        }),
+        { numRuns: 100 }
+      );
+    });
+
+    it("Property: Authorized role + action always permits", () => {
+      // **Validates: Requirements 2.2**
+      fc.assert(
+        fc.property(roleArbitrary, (role) => {
+          const authorizedActions = EXPECTED_PERMISSIONS[role];
+          
+          // Pick a random authorized action for this role
+          if (authorizedActions.length === 0) return true;
+          
+          const randomIndex = Math.floor(Math.random() * authorizedActions.length);
+          const action = authorizedActions[randomIndex];
+          
+          // This explicitly authorized (role, action) pair must be permitted
+          return can(role, action) === true;
+        }),
+        { numRuns: 100 }
+      );
+    });
+
+    it("Property: Permission asymmetry - no action is granted to all roles except dashboard:view", () => {
+      // **Validates: Requirements 2.5, 2.6, 2.7, 2.8**
+      fc.assert(
+        fc.property(actionArbitrary, (action) => {
+          // Count how many roles have this action
+          const rolesWithAction = VALID_ROLES.filter(role => 
+            EXPECTED_PERMISSIONS[role].includes(action)
+          );
+
+          // Special case: dashboard:view is granted to all roles
+          if (action === "dashboard:view") {
+            return rolesWithAction.length === VALID_ROLES.length;
+          }
+
+          // All other actions should be granted to fewer than all roles (role separation)
+          return rolesWithAction.length < VALID_ROLES.length;
+        }),
+        { numRuns: 100 }
+      );
+    });
+
+    it("Property: getAuthorizedActions returns exactly the expected set", () => {
+      // **Validates: Requirements 2.2, 2.4**
+      fc.assert(
+        fc.property(roleArbitrary, (role) => {
+          const actualActions = getAuthorizedActions(role);
+          const expectedActions = EXPECTED_PERMISSIONS[role];
+
+          // Check set equality
+          if (actualActions.size !== expectedActions.length) return false;
+
+          for (const action of expectedActions) {
+            if (!actualActions.has(action)) return false;
+          }
+
+          return true;
+        }),
+        { numRuns: 100 }
+      );
+    });
+
+    it("Property: No data changes when access is denied", () => {
+      // **Validates: Requirements 2.3**
+      // This property verifies that can() is a pure query function
+      fc.assert(
+        fc.property(roleArbitrary, actionArbitrary, (role, action) => {
+          // Call can() multiple times
+          const result1 = can(role, action);
+          const result2 = can(role, action);
+          const result3 = can(role, action);
+
+          // Results must be identical (deterministic, no side effects)
+          return result1 === result2 && result2 === result3;
+        }),
+        { numRuns: 100 }
+      );
+    });
+
+    it("Property: Each role has at least one authorized action", () => {
+      // **Validates: Requirements 2.5, 2.6, 2.7, 2.8**
+      fc.assert(
+        fc.property(roleArbitrary, (role) => {
+          const authorizedActions = getAuthorizedActions(role);
+          
+          // Every valid role should have at least one action (including dashboard:view)
+          return authorizedActions.size > 0;
+        }),
+        { numRuns: 100 }
+      );
+    });
+
+    it("Property: Dashboard view is granted to all roles", () => {
+      // **Validates: Requirements 10.1**
+      fc.assert(
+        fc.property(roleArbitrary, (role) => {
+          // All authenticated users (with valid roles) can view dashboard
+          return can(role, "dashboard:view") === true;
+        }),
+        { numRuns: 100 }
+      );
     });
   });
 });

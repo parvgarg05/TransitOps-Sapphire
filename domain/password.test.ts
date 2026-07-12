@@ -8,6 +8,7 @@
  */
 
 import { describe, it, expect } from "vitest";
+import fc from "fast-check";
 import { hashPassword, verifyPassword } from "./password";
 
 describe("Password Hashing Utilities", () => {
@@ -229,5 +230,168 @@ describe("Password Hashing Utilities", () => {
       const isValid = await verifyPassword(incorrectPassword, hash);
       expect(isValid).toBe(false);
     });
+  });
+
+  describe("Property-Based Tests", () => {
+    // Feature: transitops, Property 1: Passwords are stored hashed and verifiable, never as plaintext
+    // **Validates: Requirements 1.4**
+    it("Property 1: Passwords are stored hashed and verifiable, never as plaintext", async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.string({ minLength: 1, maxLength: 128 }), // Generate passwords up to the max allowed length
+          async (password) => {
+            const hash = await hashPassword(password);
+
+            // The hash must not be the plaintext password
+            expect(hash).not.toBe(password);
+            
+            // The hash must not contain the plaintext password (for multi-char passwords)
+            // Skip this check for single-char passwords as bcrypt format may contain single chars like "/"
+            if (password.length > 1) {
+              expect(hash).not.toContain(password);
+            }
+
+            // The hash must be in bcrypt format
+            expect(hash).toMatch(/^\$2[ab]\$/);
+
+            // The original password must verify against the hash (verifiable)
+            const isValid = await verifyPassword(password, hash);
+            expect(isValid).toBe(true);
+
+            // A different password must not verify against the hash
+            const differentPassword = password + "x";
+            const isInvalid = await verifyPassword(differentPassword, hash);
+            expect(isInvalid).toBe(false);
+
+            return true;
+          }
+        ),
+        { numRuns: 100 }
+      );
+    }, 60000); // 60 second timeout for bcrypt operations
+
+    // Feature: transitops, Property: Hash determinism - same password always verifies
+    // **Validates: Requirements 1.4**
+    it("Property: Hash determinism - same password always verifies", async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.string({ minLength: 1, maxLength: 128 }),
+          async (password) => {
+            const hash = await hashPassword(password);
+
+            // The same password should always verify correctly
+            const verify1 = await verifyPassword(password, hash);
+            const verify2 = await verifyPassword(password, hash);
+            const verify3 = await verifyPassword(password, hash);
+
+            expect(verify1).toBe(true);
+            expect(verify2).toBe(true);
+            expect(verify3).toBe(true);
+
+            return true;
+          }
+        ),
+        { numRuns: 100 }
+      );
+    }, 60000); // 60 second timeout for bcrypt operations
+
+    // Feature: transitops, Property: Salt uniqueness - same password produces different hashes
+    // **Validates: Requirements 1.4**
+    it("Property: Salt uniqueness - same password produces different hashes", async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.string({ minLength: 1, maxLength: 128 }),
+          async (password) => {
+            // Hash the same password multiple times
+            const hash1 = await hashPassword(password);
+            const hash2 = await hashPassword(password);
+            const hash3 = await hashPassword(password);
+
+            // Due to random salt, all hashes should be different
+            expect(hash1).not.toBe(hash2);
+            expect(hash2).not.toBe(hash3);
+            expect(hash1).not.toBe(hash3);
+
+            // But all should still verify the original password
+            expect(await verifyPassword(password, hash1)).toBe(true);
+            expect(await verifyPassword(password, hash2)).toBe(true);
+            expect(await verifyPassword(password, hash3)).toBe(true);
+
+            return true;
+          }
+        ),
+        { numRuns: 100 }
+      );
+    }, 60000); // 60 second timeout for bcrypt operations
+
+    // Feature: transitops, Property: Incorrect passwords never verify
+    // **Validates: Requirements 1.4**
+    it("Property: Incorrect passwords never verify", async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.string({ minLength: 1, maxLength: 128 }),
+          fc.string({ minLength: 1, maxLength: 128 }),
+          async (password1, password2) => {
+            // Only test when passwords are different
+            fc.pre(password1 !== password2);
+
+            const hash = await hashPassword(password1);
+
+            // A different password should never verify
+            const isValid = await verifyPassword(password2, hash);
+            expect(isValid).toBe(false);
+
+            return true;
+          }
+        ),
+        { numRuns: 100 }
+      );
+    }, 60000); // 60 second timeout for bcrypt operations
+
+    // Feature: transitops, Property: Hash format consistency
+    // **Validates: Requirements 1.4**
+    it("Property: Hash format consistency - all hashes follow bcrypt format", async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.string({ minLength: 0, maxLength: 128 }),
+          async (password) => {
+            const hash = await hashPassword(password);
+
+            // All hashes must be non-empty strings
+            expect(typeof hash).toBe("string");
+            expect(hash.length).toBeGreaterThan(0);
+
+            // All hashes must follow bcrypt format
+            expect(hash).toMatch(/^\$2[ab]\$\d+\$/);
+
+            return true;
+          }
+        ),
+        { numRuns: 100 }
+      );
+    }, 60000); // 60 second timeout for bcrypt operations
+
+    // Feature: transitops, Property: Password special characters handling
+    // **Validates: Requirements 1.4**
+    it("Property: Handles passwords with special characters correctly", async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.string({ minLength: 1, maxLength: 128 }),
+          async (password) => {
+            const hash = await hashPassword(password);
+
+            // Must hash and verify regardless of special characters
+            expect(hash).toBeDefined();
+            expect(hash).toMatch(/^\$2[ab]\$/);
+
+            const isValid = await verifyPassword(password, hash);
+            expect(isValid).toBe(true);
+
+            return true;
+          }
+        ),
+        { numRuns: 100 }
+      );
+    }, 60000); // 60 second timeout for bcrypt operations
   });
 });
