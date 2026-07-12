@@ -28,20 +28,20 @@ export function ReportCard({
   const displayValue = () => {
     if (isLoading) {
       return (
-        <span className="text-3xl font-bold text-gray-400">Loading...</span>
+        <span className="text-3xl font-bold text-muted-foreground">Loading...</span>
       );
     }
 
     if (value === null || value === "N/A") {
       return (
-        <span className="text-3xl font-bold text-gray-400">N/A</span>
+        <span className="text-3xl font-bold text-muted-foreground">N/A</span>
       );
     }
 
     return (
-      <span className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+      <span className="text-3xl font-bold text-foreground dark:text-gray-100">
         {typeof value === "number" ? value.toFixed(2) : value}
-        {unit && <span className="text-lg text-gray-600 dark:text-gray-400 ml-2">{unit}</span>}
+        {unit && <span className="text-lg text-muted-foreground dark:text-muted-foreground ml-2">{unit}</span>}
       </span>
     );
   };
@@ -49,7 +49,7 @@ export function ReportCard({
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader>
-        <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+        <CardTitle className="text-sm font-medium text-muted-foreground dark:text-muted-foreground">
           {title}
         </CardTitle>
       </CardHeader>
@@ -57,7 +57,7 @@ export function ReportCard({
         <div className="space-y-2">
           {displayValue()}
           {description && (
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-muted-foreground dark:text-muted-foreground">
               {description}
             </p>
           )}

@@ -96,7 +96,7 @@ export function OperationalCostView({
   if (loading && costData.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 border rounded-lg">
-        <p className="text-gray-500">Loading operational costs...</p>
+        <p className="text-muted-foreground">Loading operational costs...</p>
       </div>
     );
   }
@@ -113,7 +113,7 @@ export function OperationalCostView({
   if (vehicles.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 border rounded-lg">
-        <p className="text-gray-500">No vehicles available</p>
+        <p className="text-muted-foreground">No vehicles available</p>
       </div>
     );
   }
@@ -128,7 +128,7 @@ export function OperationalCostView({
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h3 className="text-lg font-semibold">Operational Cost by Vehicle</h3>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             Total: ₹{totalOperationalCost.toLocaleString("en-IN", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
@@ -158,7 +158,7 @@ export function OperationalCostView({
           <TableBody>
             {costData.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center text-gray-500 py-8">
+                <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
                   No operational cost data available
                 </TableCell>
               </TableRow>

@@ -86,12 +86,12 @@ export function DriverForm({ driver, onClose, onSuccess }: DriverFormProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
+    <div className="bg-canvas rounded-lg shadow-lg p-6">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">
+        <h2 className="text-2xl font-bold text-foreground">
           {isEditMode ? "Edit Driver" : "Create New Driver"}
         </h2>
-        <p className="text-gray-600 mt-1">
+        <p className="text-muted-foreground mt-1">
           {isEditMode
             ? "Update driver information and compliance fields"
             : "Add a new driver with all required compliance information"}
@@ -109,7 +109,7 @@ export function DriverForm({ driver, onClose, onSuccess }: DriverFormProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Name */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="name" className="block text-sm font-medium text-muted-foreground mb-1">
               Driver Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -119,14 +119,14 @@ export function DriverForm({ driver, onClose, onSuccess }: DriverFormProps) {
               value={formData.name}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-hairline rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter driver name"
             />
           </div>
 
           {/* License Number */}
           <div>
-            <label htmlFor="licenseNumber" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="licenseNumber" className="block text-sm font-medium text-muted-foreground mb-1">
               License Number <span className="text-red-500">*</span>
             </label>
             <input
@@ -136,14 +136,14 @@ export function DriverForm({ driver, onClose, onSuccess }: DriverFormProps) {
               value={formData.licenseNumber}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-hairline rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter license number"
             />
           </div>
 
           {/* License Category */}
           <div>
-            <label htmlFor="licenseCategory" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="licenseCategory" className="block text-sm font-medium text-muted-foreground mb-1">
               License Category <span className="text-red-500">*</span>
             </label>
             <input
@@ -153,7 +153,7 @@ export function DriverForm({ driver, onClose, onSuccess }: DriverFormProps) {
               value={formData.licenseCategory}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-hairline rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., Class A, Class B, CDL"
             />
           </div>
@@ -162,7 +162,7 @@ export function DriverForm({ driver, onClose, onSuccess }: DriverFormProps) {
           <div>
             <label
               htmlFor="licenseExpiryDate"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-muted-foreground mb-1"
             >
               License Expiry Date <span className="text-red-500">*</span>
             </label>
@@ -173,13 +173,13 @@ export function DriverForm({ driver, onClose, onSuccess }: DriverFormProps) {
               value={formData.licenseExpiryDate}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-hairline rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           {/* Contact Number */}
           <div>
-            <label htmlFor="contactNumber" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="contactNumber" className="block text-sm font-medium text-muted-foreground mb-1">
               Contact Number <span className="text-red-500">*</span>
             </label>
             <input
@@ -189,14 +189,14 @@ export function DriverForm({ driver, onClose, onSuccess }: DriverFormProps) {
               value={formData.contactNumber}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-hairline rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter contact number"
             />
           </div>
 
           {/* Safety Score */}
           <div>
-            <label htmlFor="safetyScore" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="safetyScore" className="block text-sm font-medium text-muted-foreground mb-1">
               Safety Score (0-100) <span className="text-red-500">*</span>
             </label>
             <input
@@ -209,10 +209,10 @@ export function DriverForm({ driver, onClose, onSuccess }: DriverFormProps) {
               min="0"
               max="100"
               step="0.01"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-hairline rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter safety score"
             />
-            <p className="text-xs text-gray-500 mt-1">Must be between 0 and 100</p>
+            <p className="text-xs text-muted-foreground mt-1">Must be between 0 and 100</p>
           </div>
         </div>
 
@@ -222,7 +222,7 @@ export function DriverForm({ driver, onClose, onSuccess }: DriverFormProps) {
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-6 py-2 border border-hairline text-muted-foreground rounded-md hover:bg-surface-card disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Cancel
           </button>

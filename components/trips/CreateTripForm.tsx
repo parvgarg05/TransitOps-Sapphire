@@ -137,7 +137,7 @@ export function CreateTripForm({ onTripCreated, userId }: CreateTripFormProps) {
   }
 
   return (
-    <div className="border rounded-lg p-6 bg-white shadow-sm">
+    <div className="border rounded-lg p-6 bg-canvas shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold">Create New Trip</h3>
         <Button
@@ -153,7 +153,7 @@ export function CreateTripForm({ onTripCreated, userId }: CreateTripFormProps) {
       </div>
 
       {isLoadingPool ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-muted-foreground">
           Loading available vehicles and drivers...
         </div>
       ) : (
@@ -213,7 +213,7 @@ export function CreateTripForm({ onTripCreated, userId }: CreateTripFormProps) {
               ))}
             </NativeSelect>
             {selectedVehicle && (
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-muted-foreground">
                 Max capacity: {selectedVehicle.maxLoadCapacity} kg
               </p>
             )}
@@ -259,7 +259,7 @@ export function CreateTripForm({ onTripCreated, userId }: CreateTripFormProps) {
                 disabled={isLoading}
               />
               {selectedVehicle && formData.cargoWeight && (
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-muted-foreground">
                   {parseFloat(formData.cargoWeight) <= selectedVehicle.maxLoadCapacity ? (
                     <span className="text-green-600">✓ Within capacity</span>
                   ) : (

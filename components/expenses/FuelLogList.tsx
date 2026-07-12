@@ -45,7 +45,7 @@ export function FuelLogList({ fuelLogs, vehicles }: FuelLogListProps) {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="text-gray-600">Total Liters</p>
+              <p className="text-muted-foreground">Total Liters</p>
               <p className="text-lg font-semibold text-blue-900">
                 {totalLiters.toLocaleString("en-IN", {
                   minimumFractionDigits: 2,
@@ -54,7 +54,7 @@ export function FuelLogList({ fuelLogs, vehicles }: FuelLogListProps) {
               </p>
             </div>
             <div>
-              <p className="text-gray-600">Total Cost</p>
+              <p className="text-muted-foreground">Total Cost</p>
               <p className="text-lg font-semibold text-blue-900">
                 ₹
                 {totalCost.toLocaleString("en-IN", {
@@ -81,7 +81,7 @@ export function FuelLogList({ fuelLogs, vehicles }: FuelLogListProps) {
           <TableBody>
             {sortedLogs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-gray-500 py-8">
+                <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
                   No fuel logs found
                 </TableCell>
               </TableRow>
@@ -120,7 +120,7 @@ export function FuelLogList({ fuelLogs, vehicles }: FuelLogListProps) {
       </div>
 
       {fuelLogs.length > 0 && (
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           Showing {sortedLogs.length} fuel log{sortedLogs.length !== 1 ? "s" : ""}
         </p>
       )}

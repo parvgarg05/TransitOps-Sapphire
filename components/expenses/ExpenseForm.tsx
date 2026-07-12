@@ -175,7 +175,7 @@ export function ExpenseForm({ vehicles, onSuccess }: ExpenseFormProps) {
           {fieldErrors.cost && (
             <p className="text-sm text-red-500">{fieldErrors.cost}</p>
           )}
-          <p className="text-xs text-gray-500">Must be greater than or equal to 0</p>
+          <p className="text-xs text-muted-foreground">Must be greater than or equal to 0</p>
         </div>
 
         <div className="space-y-2">
@@ -193,7 +193,7 @@ export function ExpenseForm({ vehicles, onSuccess }: ExpenseFormProps) {
           {fieldErrors.date && (
             <p className="text-sm text-red-500">{fieldErrors.date}</p>
           )}
-          <p className="text-xs text-gray-500">Cannot be in the future</p>
+          <p className="text-xs text-muted-foreground">Cannot be in the future</p>
         </div>
       </div>
 

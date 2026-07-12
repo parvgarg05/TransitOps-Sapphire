@@ -174,7 +174,7 @@ export function VehicleForm({
                 required: "Registration number is required",
               })}
               disabled={isEditing} // Immutable on edit (Req 3.5)
-              className={isEditing ? "bg-gray-100" : ""}
+              className={isEditing ? "bg-surface-card" : ""}
             />
             {errors.registrationNumber && (
               <p className="text-sm text-red-500">
@@ -182,7 +182,7 @@ export function VehicleForm({
               </p>
             )}
             {isEditing && (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Registration number cannot be changed
               </p>
             )}
@@ -229,7 +229,7 @@ export function VehicleForm({
               {...register("region")}
               placeholder="e.g., North, South, East, West"
             />
-            <p className="text-xs text-gray-500">Optional</p>
+            <p className="text-xs text-muted-foreground">Optional</p>
           </div>
 
           {/* Two-column layout for numeric fields */}
@@ -339,7 +339,7 @@ export function VehicleForm({
               {errors.revenue && (
                 <p className="text-sm text-red-500">{errors.revenue.message}</p>
               )}
-              <p className="text-xs text-gray-500">For ROI calculation</p>
+              <p className="text-xs text-muted-foreground">For ROI calculation</p>
             </div>
           </div>
 

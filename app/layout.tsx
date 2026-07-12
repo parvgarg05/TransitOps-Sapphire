@@ -6,6 +6,7 @@ import { SessionProvider } from "@/components/providers/SessionProvider";
 import { AppShell } from "@/components/layout/AppShell";
 import { ThemeScript } from "@/components/layout/ThemeToggle";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { ToastProvider } from "@/components/ui/toast";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
@@ -26,9 +27,11 @@ export default function RootLayout({
       </head>
       <body>
         <ThemeProvider>
-          <SessionProvider>
-            <AppShell>{children}</AppShell>
-          </SessionProvider>
+          <ToastProvider>
+            <SessionProvider>
+              <AppShell>{children}</AppShell>
+            </SessionProvider>
+          </ToastProvider>
         </ThemeProvider>
       </body>
     </html>

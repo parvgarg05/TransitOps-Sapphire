@@ -106,11 +106,11 @@ export function TripActions({ trip, onUpdate }: TripActionsProps) {
       )}
 
       {trip.status === "Completed" && (
-        <span className="text-xs text-gray-500">Trip completed</span>
+        <span className="text-xs text-muted-foreground">Trip completed</span>
       )}
 
       {trip.status === "Cancelled" && (
-        <span className="text-xs text-gray-500">Trip cancelled</span>
+        <span className="text-xs text-muted-foreground">Trip cancelled</span>
       )}
 
       <CompleteTripDialog
