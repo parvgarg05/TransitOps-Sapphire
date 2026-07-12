@@ -13,16 +13,21 @@ import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 
-/** Routes that should render without the app chrome. */
+/** Routes that should render without the app chrome (sidebar/header). */
 const BARE_ROUTES = ["/login"];
+
+/** Exact-match bare routes (e.g. the public landing page at "/"). */
+const BARE_EXACT_ROUTES = ["/"];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const isBare = BARE_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`)
-  );
+  const isBare =
+    BARE_EXACT_ROUTES.includes(pathname) ||
+    BARE_ROUTES.some(
+      (route) => pathname === route || pathname.startsWith(`${route}/`)
+    );
 
   if (isBare) {
     return <>{children}</>;

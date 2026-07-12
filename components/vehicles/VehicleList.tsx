@@ -14,7 +14,7 @@
  * Requirements: 3.4, 3.6
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Vehicle, VehicleStatus } from "@/domain/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +36,23 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { VehicleForm } from "./VehicleForm";
 import { RetireDialog } from "./RetireDialog";
-import { Plus, Pencil } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Search,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
+} from "lucide-react";
+
+// Columns that support click-to-sort in the vehicle table
+type VehicleSortKey =
+  | "name"
+  | "type"
+  | "status"
+  | "odometer"
+  | "maxLoadCapacity";
+type SortDirection = "asc" | "desc";
 
 export function VehicleList() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -49,6 +65,10 @@ export function VehicleList() {
   const [regionFilter, setRegionFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // Sort state — null key preserves the default (fetched) order
+  const [sortKey, setSortKey] = useState<VehicleSortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDirection>("asc");
   
   // Dialog states
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -99,18 +119,66 @@ export function VehicleList() {
       filtered = filtered.filter((v) => v.status === statusFilter);
     }
 
-    // Apply search query (registration number or name)
+    // Apply search query (registration number, name, or type)
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (v) =>
           v.registrationNumber.toLowerCase().includes(query) ||
-          v.name.toLowerCase().includes(query)
+          v.name.toLowerCase().includes(query) ||
+          v.type.toLowerCase().includes(query)
       );
     }
 
     setFilteredVehicles(filtered);
   }, [vehicles, typeFilter, regionFilter, statusFilter, searchQuery]);
+
+  // Toggle sorting for a column: same column flips direction, new column resets to asc
+  const handleSort = (key: VehicleSortKey) => {
+    if (sortKey === key) {
+      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
+  // Apply sorting on top of filtering. When no sort key is chosen, keep default order.
+  const sortedVehicles = useMemo(() => {
+    if (!sortKey) return filteredVehicles;
+
+    const sorted = [...filteredVehicles].sort((a, b) => {
+      const aValue = a[sortKey];
+      const bValue = b[sortKey];
+
+      let comparison = 0;
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        comparison = aValue - bValue;
+      } else {
+        comparison = String(aValue).localeCompare(String(bValue), undefined, {
+          sensitivity: "base",
+        });
+      }
+
+      return sortDir === "asc" ? comparison : -comparison;
+    });
+
+    return sorted;
+  }, [filteredVehicles, sortKey, sortDir]);
+
+  // Sort indicator icon for a given sortable column header
+  const SortIcon = ({ column }: { column: VehicleSortKey }) => {
+    if (sortKey !== column) {
+      return (
+        <ChevronsUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+      );
+    }
+    return sortDir === "asc" ? (
+      <ChevronUp className="h-3.5 w-3.5 text-foreground" />
+    ) : (
+      <ChevronDown className="h-3.5 w-3.5 text-foreground" />
+    );
+  };
 
   // Get unique types and regions for filters
   const uniqueTypes = Array.from(new Set(vehicles.map((v) => v.type)));
@@ -167,11 +235,15 @@ export function VehicleList() {
           {/* Search */}
           <div className="flex-1 md:max-w-xs">
             <label className="text-sm font-medium mb-1.5 block">Search</label>
-            <Input
-              placeholder="Search by registration or name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                className="pl-9"
+                placeholder="Search by registration, name, or type..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
           </div>
 
           {/* Type Filter */}
@@ -246,24 +318,69 @@ export function VehicleList() {
           <TableHeader>
             <TableRow>
               <TableHead>Registration Number</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Type</TableHead>
+              <TableHead>
+                <button
+                  type="button"
+                  onClick={() => handleSort("name")}
+                  className="inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Name
+                  <SortIcon column="name" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <button
+                  type="button"
+                  onClick={() => handleSort("type")}
+                  className="inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Type
+                  <SortIcon column="type" />
+                </button>
+              </TableHead>
               <TableHead>Region</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Max Load (kg)</TableHead>
-              <TableHead className="text-right">Odometer (km)</TableHead>
+              <TableHead>
+                <button
+                  type="button"
+                  onClick={() => handleSort("status")}
+                  className="inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Status
+                  <SortIcon column="status" />
+                </button>
+              </TableHead>
+              <TableHead className="text-right">
+                <button
+                  type="button"
+                  onClick={() => handleSort("maxLoadCapacity")}
+                  className="inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground ml-auto"
+                >
+                  Max Load (kg)
+                  <SortIcon column="maxLoadCapacity" />
+                </button>
+              </TableHead>
+              <TableHead className="text-right">
+                <button
+                  type="button"
+                  onClick={() => handleSort("odometer")}
+                  className="inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground ml-auto"
+                >
+                  Odometer (km)
+                  <SortIcon column="odometer" />
+                </button>
+              </TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredVehicles.length === 0 ? (
+            {sortedVehicles.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="text-center text-gray-500 py-8">
                   No vehicles found
                 </TableCell>
               </TableRow>
             ) : (
-              filteredVehicles.map((vehicle) => (
+              sortedVehicles.map((vehicle) => (
                 <TableRow key={vehicle.id}>
                   <TableCell className="font-medium">
                     {vehicle.registrationNumber}

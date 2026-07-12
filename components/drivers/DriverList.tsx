@@ -11,6 +11,8 @@
 import { useState, useMemo } from "react";
 import { DriverWithValidity } from "@/app/drivers/page";
 import { isLicenseExpired, isLicenseSoonToExpire } from "@/domain/license";
+import { Input } from "@/components/ui/input";
+import { Search, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 
 interface DriverListProps {
   drivers: DriverWithValidity[];
@@ -20,10 +22,19 @@ interface DriverListProps {
 
 type LicenseValidityStatus = "valid" | "soon-to-expire" | "expired";
 
+// Columns that support click-to-sort in the driver table
+type DriverSortKey = "name" | "status" | "licenseExpiryDate" | "safetyScore";
+type SortDirection = "asc" | "desc";
+
 export function DriverList({ drivers, onEdit, onRefresh }: DriverListProps) {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [validityFilter, setValidityFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // Sort state — null key preserves the default order
+  const [sortKey, setSortKey] = useState<DriverSortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDirection>("asc");
 
   // Get license validity status
   const getLicenseValidityStatus = (driver: DriverWithValidity): LicenseValidityStatus => {
@@ -51,6 +62,8 @@ export function DriverList({ drivers, onEdit, onRefresh }: DriverListProps) {
 
   // Filter drivers
   const filteredDrivers = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
     return drivers.filter((driver) => {
       // Status filter
       if (statusFilter !== "all" && driver.status !== statusFilter) {
@@ -70,9 +83,68 @@ export function DriverList({ drivers, onEdit, onRefresh }: DriverListProps) {
         }
       }
 
+      // Search query (name or license number)
+      if (query) {
+        const matches =
+          driver.name.toLowerCase().includes(query) ||
+          driver.licenseNumber.toLowerCase().includes(query);
+        if (!matches) {
+          return false;
+        }
+      }
+
       return true;
     });
-  }, [drivers, statusFilter, categoryFilter, validityFilter]);
+  }, [drivers, statusFilter, categoryFilter, validityFilter, searchQuery]);
+
+  // Toggle sorting for a column: same column flips direction, new column resets to asc
+  const handleSort = (key: DriverSortKey) => {
+    if (sortKey === key) {
+      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
+  // Apply sorting on top of filtering. When no sort key is chosen, keep default order.
+  const sortedDrivers = useMemo(() => {
+    if (!sortKey) return filteredDrivers;
+
+    const sorted = [...filteredDrivers].sort((a, b) => {
+      let comparison = 0;
+
+      if (sortKey === "safetyScore") {
+        comparison = a.safetyScore - b.safetyScore;
+      } else if (sortKey === "licenseExpiryDate") {
+        comparison =
+          new Date(a.licenseExpiryDate).getTime() -
+          new Date(b.licenseExpiryDate).getTime();
+      } else {
+        comparison = String(a[sortKey]).localeCompare(
+          String(b[sortKey]),
+          undefined,
+          { sensitivity: "base" }
+        );
+      }
+
+      return sortDir === "asc" ? comparison : -comparison;
+    });
+
+    return sorted;
+  }, [filteredDrivers, sortKey, sortDir]);
+
+  // Sort indicator icon for a given sortable column header
+  const SortIcon = ({ column }: { column: DriverSortKey }) => {
+    if (sortKey !== column) {
+      return <ChevronsUpDown className="h-3.5 w-3.5 text-muted-foreground" />;
+    }
+    return sortDir === "asc" ? (
+      <ChevronUp className="h-3.5 w-3.5 text-foreground" />
+    ) : (
+      <ChevronDown className="h-3.5 w-3.5 text-foreground" />
+    );
+  };
 
   // Format date for display
   const formatDate = (dateString: string): string => {
@@ -141,6 +213,22 @@ export function DriverList({ drivers, onEdit, onRefresh }: DriverListProps) {
     <div className="bg-white rounded-lg shadow">
       {/* Filters */}
       <div className="p-6 border-b border-gray-200">
+        {/* Search */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Search
+          </label>
+          <div className="relative md:max-w-xs">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              className="pl-9"
+              placeholder="Search by name or license number..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Status Filter */}
           <div>
@@ -213,7 +301,14 @@ export function DriverList({ drivers, onEdit, onRefresh }: DriverListProps) {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Name
+                <button
+                  type="button"
+                  onClick={() => handleSort("name")}
+                  className="inline-flex items-center gap-1 uppercase tracking-wider transition-colors hover:text-foreground"
+                >
+                  Name
+                  <SortIcon column="name" />
+                </button>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 License Number
@@ -222,16 +317,37 @@ export function DriverList({ drivers, onEdit, onRefresh }: DriverListProps) {
                 Category
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
+                <button
+                  type="button"
+                  onClick={() => handleSort("status")}
+                  className="inline-flex items-center gap-1 uppercase tracking-wider transition-colors hover:text-foreground"
+                >
+                  Status
+                  <SortIcon column="status" />
+                </button>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Expiry Date
+                <button
+                  type="button"
+                  onClick={() => handleSort("licenseExpiryDate")}
+                  className="inline-flex items-center gap-1 uppercase tracking-wider transition-colors hover:text-foreground"
+                >
+                  Expiry Date
+                  <SortIcon column="licenseExpiryDate" />
+                </button>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 License Validity
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Safety Score
+                <button
+                  type="button"
+                  onClick={() => handleSort("safetyScore")}
+                  className="inline-flex items-center gap-1 uppercase tracking-wider transition-colors hover:text-foreground"
+                >
+                  Safety Score
+                  <SortIcon column="safetyScore" />
+                </button>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Contact
@@ -242,7 +358,7 @@ export function DriverList({ drivers, onEdit, onRefresh }: DriverListProps) {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredDrivers.map((driver) => (
+            {sortedDrivers.map((driver) => (
               <tr key={driver.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">{driver.name}</div>
