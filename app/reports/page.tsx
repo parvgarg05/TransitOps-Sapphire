@@ -306,14 +306,14 @@ export default function ReportsPage() {
       {/* Detailed Tables */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Fuel Efficiency Table */}
-        <Card>
-          <CardHeader>
+        <Card className="ring-0 shadow-sm [--card-spacing:--spacing(6)]">
+          <CardHeader className="px-6 pt-6 pb-3">
             <CardTitle className="flex items-center gap-2">
               <FileSpreadsheet className="h-5 w-5" />
               Fuel Efficiency by Vehicle
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-6 pb-6 pt-0">
             {isLoading ? (
               <div className="text-center py-8 text-muted-foreground">Loading...</div>
             ) : fuelEfficiency.length === 0 ? (
@@ -354,14 +354,14 @@ export default function ReportsPage() {
         </Card>
 
         {/* Vehicle ROI Table */}
-        <Card>
-          <CardHeader>
+        <Card className="ring-0 shadow-sm [--card-spacing:--spacing(6)]">
+          <CardHeader className="px-6 pt-6 pb-3">
             <CardTitle className="flex items-center gap-2">
               <FileSpreadsheet className="h-5 w-5" />
               Vehicle ROI
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-6 pb-6 pt-0">
             {isLoading ? (
               <div className="text-center py-8 text-muted-foreground">Loading...</div>
             ) : vehicleROI.length === 0 ? (

@@ -53,12 +53,20 @@ export function ExpenseManagement() {
     try {
       const response = await fetch("/api/vehicles");
       const data = await response.json();
-      
-      if (data.success) {
+
+      if (response.ok && data.success) {
         setVehicles(data.data);
-      } else {
-        setError(data.error || "Failed to fetch vehicles");
+        return;
       }
+
+      // Some roles can read expenses but not vehicles. Treat that as a
+      // non-fatal limitation so the page can still render expense data.
+      if (response.status === 401 || response.status === 403) {
+        setVehicles([]);
+        return;
+      }
+
+      setError(data.error || "Failed to fetch vehicles");
     } catch (err) {
       setError("Failed to connect to the server");
     }

@@ -142,6 +142,10 @@ describe("RBAC Permission Matrix", () => {
       expect(can(role, "fuel:read")).toBe(true);
     });
 
+    it("should allow Financial Analyst to read vehicles", () => {
+      expect(can(role, "vehicle:read")).toBe(true);
+    });
+
     it("should allow Financial Analyst to read expenses", () => {
       expect(can(role, "expense:read")).toBe(true);
     });
