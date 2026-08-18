@@ -8,6 +8,7 @@
  */
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface ReportCardProps {
   title: string;
@@ -15,6 +16,7 @@ interface ReportCardProps {
   unit?: string;
   description?: string;
   isLoading?: boolean;
+  className?: string;
 }
 
 export function ReportCard({
@@ -23,6 +25,7 @@ export function ReportCard({
   unit,
   description,
   isLoading = false,
+  className,
 }: ReportCardProps) {
   // Format value display
   const displayValue = () => {
@@ -47,14 +50,14 @@ export function ReportCard({
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader>
+    <Card className={cn("ring-0 shadow-sm hover:shadow-md transition-shadow [--card-spacing:--spacing(6)]", className)}>
+      <CardHeader className="px-6 pt-6 pb-3">
         <CardTitle className="text-sm font-medium text-muted-foreground dark:text-muted-foreground">
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
+      <CardContent className="px-6 pb-6 pt-0">
+        <div className="space-y-3">
           {displayValue()}
           {description && (
             <p className="text-sm text-muted-foreground dark:text-muted-foreground">

@@ -94,6 +94,7 @@ const PERMISSION_MATRIX: ReadonlyMap<Role, ReadonlySet<Action>> = new Map([
   [
     "Financial Analyst",
     new Set<Action>([
+      "vehicle:read",
       "fuel:read",
       "expense:read",
       "analytics:read",

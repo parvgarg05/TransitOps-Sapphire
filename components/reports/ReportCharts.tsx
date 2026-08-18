@@ -93,13 +93,13 @@ export function ReportCharts({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {hasUtilization && (
-          <Card>
-            <CardHeader>
+          <Card className="ring-0 shadow-sm [--card-spacing:--spacing(6)]">
+            <CardHeader className="px-6 pt-6 pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Fleet Utilization
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-6 pb-6 pt-0">
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -136,13 +136,13 @@ export function ReportCharts({
         )}
 
         {hasEfficiency && (
-          <Card>
-            <CardHeader>
+          <Card className="ring-0 shadow-sm [--card-spacing:--spacing(6)]">
+            <CardHeader className="px-6 pt-6 pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Fuel Efficiency by Vehicle (km/L)
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-6 pb-6 pt-0">
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
