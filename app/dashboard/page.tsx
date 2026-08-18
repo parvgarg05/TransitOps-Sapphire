@@ -366,7 +366,9 @@ export default function DashboardPage() {
           role: data?.role,
           view,
           filters,
-          kpis: data?.kpis,
+          kpis: data?.kpis ? Object.fromEntries(
+            Object.entries(data.kpis).filter(([_, v]) => typeof v === 'number' || v === null)
+          ) as Record<string, number | null | undefined> : undefined,
         }}
       />
 
